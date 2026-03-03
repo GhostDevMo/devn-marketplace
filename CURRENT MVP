@@ -23,3 +23,11 @@ Revenue tracking UI
 That is not a demo.
 
 That is a working marketplace platform.
+
+
+Client books
+→ Payment succeeds
+→ Status = pending_approval
+→ Professional accepts
+→ Status = confirmed
+→ Dashboards update on both sides
