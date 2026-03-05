@@ -199,3 +199,7 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/
 fastlane/test_output/
+
+ios/App/App.xcworkspace
+ios/App/xcuserdata
+DerivedData
