@@ -1,0 +1,36 @@
+1️⃣ Client Side
+
+Payment successful
+
+Booking appears in Upcoming
+
+Status = Pending Approval
+
+Amount Paid shown
+
+Booking ID generated
+
+2️⃣ Professional Side
+
+Pending Requests = 1
+
+Client name visible
+
+Amount visible
+
+Accept / Decline buttons working
+
+After Accept → moves to Confirmed Appointments
+
+Pending count updates to 0
+
+Confirmed count updates to 1
+
+That means:
+
+✔ Booking creation works
+✔ Stripe payment works
+✔ Status transitions work
+✔ Professional approval works
+✔ Dashboard counters update
+✔ Role-based views are correct
