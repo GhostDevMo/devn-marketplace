@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: 'http',
     // For production, you'll need to update this to your API URL
-     url: 'https://emerson-proenforcement-zenia.ngrok-free.dev',
+     url: 'https://devn-marketplace-production.up.railway.app',
     cleartext: true 
   },
   plugins: {
