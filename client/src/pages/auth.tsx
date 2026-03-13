@@ -160,11 +160,17 @@ export default function Auth() {
       const data = await response.json();
 
       if (response.ok) {
-        if (!isCompletingProfile) {
-          localStorage.setItem('token', data.token);
-        }
-        // Redirect to professional dashboard
-        window.location.href = '/professional-dashboard';
+  if (!isCompletingProfile) {
+    localStorage.setItem('token', data.token);
+  }
+
+  const role = data.user?.role || registerForm.role;
+
+  if (role === "professional") {
+    window.location.href = "/professional-dashboard";
+  } else {
+    window.location.href = "/";
+  }
       } else {
         toast({
           title: isCompletingProfile ? "Profile completion failed" : "Registration failed",
@@ -184,7 +190,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen gradient-primary p-4 py-12">
+    <div className="min-h-screen gradient-primary p-4 py-12 pt-[calc(env(safe-area-inset-top)+16px)]">
       <div className="w-full max-w-md mx-auto">
         {/* Logo */}
         <div className="text-center mb-8">

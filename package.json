@@ -19,10 +19,12 @@
     "mobile:build": "npm run build:mobile && npx cap sync ios"
   },
   "dependencies": {
-    "@capacitor/cli": "^7.4.2",
-    "@capacitor/ios": "^7.4.2",
+    "@capacitor/cli": "^7.6.0",
+    "@capacitor/core": "^7.6.0",
+    "@capacitor/ios": "^7.6.0",
     "@capacitor/network": "^7.0.1",
     "@capacitor/splash-screen": "^7.0.1",
+    "@capacitor/status-bar": "^7.0.5",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@neondatabase/serverless": "^0.10.4",
@@ -110,13 +112,13 @@
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
-    "drizzle-kit": "^0.30.4",
+    "drizzle-kit": "^0.31.9",
     "esbuild": "^0.25.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.1",
     "typescript": "5.6.3",
-    "vite": "^5.4.19"
+    "vite": "^7.3.1"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"

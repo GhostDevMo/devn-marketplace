@@ -23,6 +23,7 @@ import Payout from "@/pages/payout";
 import PendingRequests from "@/pages/pending-requests";
 import ConfirmedAppointments from "@/pages/confirmed-appointments";
 import MobileNav from "@/components/mobile-nav";
+import ClientHeader from "@/components/client-header";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -80,15 +81,18 @@ function Router() {
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
-  
-  // Don't show mobile nav on auth pages
+
   const showMobileNav = !isLoading && isAuthenticated && location !== '/auth';
+  const showHeader = !isLoading && isAuthenticated && location !== '/auth';
 
   return (
     <>
-      <div className="app-scroll-container mobile-safe-bottom">
-        <Router />
+      {showHeader && <ClientHeader />}
+
+<div className="app-scroll-container">
+            <Router />
       </div>
+
       {showMobileNav && <MobileNav />}
     </>
   );
