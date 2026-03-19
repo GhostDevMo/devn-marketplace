@@ -19,7 +19,7 @@
     "mobile:build": "npm run build:mobile && npx cap sync ios"
   },
   "dependencies": {
-    "@capacitor/android": "^7.6.1",
+    "@capacitor/android": "^8.2.0",
     "@capacitor/cli": "^7.6.0",
     "@capacitor/core": "^7.6.0",
     "@capacitor/ios": "^7.6.0",
