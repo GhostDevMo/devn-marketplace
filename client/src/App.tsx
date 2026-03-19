@@ -24,6 +24,12 @@ import PendingRequests from "@/pages/pending-requests";
 import ConfirmedAppointments from "@/pages/confirmed-appointments";
 import MobileNav from "@/components/mobile-nav";
 import ClientHeader from "@/components/client-header";
+import { StatusBar } from '@capacitor/status-bar';
+import { Capacitor } from '@capacitor/core';
+
+if (Capacitor.getPlatform() === 'android') {
+  StatusBar.setOverlaysWebView({ overlay: false });
+}
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -82,19 +88,19 @@ function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
 
-  const showMobileNav = !isLoading && isAuthenticated && location !== '/auth';
-  const showHeader = !isLoading && isAuthenticated && location !== '/auth';
+  const showMobileNav = !isLoading && isAuthenticated && location !== "/auth";
+  const showHeader = !isLoading && isAuthenticated && location !== "/auth";
 
   return (
-    <>
+    <div className="app-root">
       {showHeader && <ClientHeader />}
 
-<div className="app-scroll-container">
-            <Router />
-      </div>
+      <main className="app-main">
+        <Router />
+      </main>
 
       {showMobileNav && <MobileNav />}
-    </>
+    </div>
   );
 }
 

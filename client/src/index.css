@@ -60,6 +60,7 @@
 
 body {
   margin: 0;
+  padding-top: env(safe-area-inset-top);
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -85,15 +86,20 @@ html, body {
   flex-direction: column;
 }
 
-.app-scroll-container {
+.app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.app-main {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  overscroll-behavior: none;
-  background-color: hsl(0, 0%, 98%);
-
-  padding-top: calc(env(safe-area-inset-top) + var(--header-height));
-  padding-bottom: env(safe-area-inset-bottom);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Touch feedback for iOS */
@@ -194,4 +200,13 @@ input, textarea {
 
 html, body, #root {
   height: 100%;
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  padding-top: env(safe-area-inset-top, 0px);
 }

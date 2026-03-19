@@ -190,7 +190,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen gradient-primary p-4 py-12 pt-[calc(env(safe-area-inset-top)+16px)]">
+    <div className="min-h-[100dvh] gradient-primary p-4 py-12 pt-[calc(env(safe-area-inset-top)+16px)]">
       <div className="w-full max-w-md mx-auto">
         {/* Logo */}
         <div className="text-center mb-8">

@@ -31,24 +31,26 @@ export default function ClientHeader() {
     navigate('/');
   };
 
-  return (
-          <div className="fixed top-0 left-0 right-0 h-16 z-50 bg-white shadow-sm border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center cursor-pointer" onClick={handleLogoClick}>
-            <img src={logoImage} alt="Devn Logo" className="h-10 w-10 rounded-lg" />
+return (
+  <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-100 pt-[env(safe-area-inset-top)]">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="flex items-center justify-between h-16">
+        <div className="flex items-center cursor-pointer" onClick={handleLogoClick}>
+          <img src={logoImage} alt="Devn Logo" className="h-10 w-10 rounded-lg" />
+        </div>
+
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+            <span className="text-white text-sm font-semibold">
+              {getInitials()}
+            </span>
           </div>
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-semibold">
-                {getInitials()}
-              </span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-            >
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+          >
               Logout
             </Button>
           </div>
