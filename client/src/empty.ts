@@ -3,5 +3,6 @@ export const registerPlugin = () => {
 };
 
 export const Capacitor = {
+  getPlatform: () => "web",
   isNativePlatform: () => false,
 };
