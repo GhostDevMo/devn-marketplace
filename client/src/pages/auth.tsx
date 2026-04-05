@@ -197,7 +197,7 @@ export default function Auth() {
           <div className="mx-auto mb-4">
             <img src={logoImage} alt="Devn Logo" className="w-32 h-32 mx-auto rounded-lg" />
           </div>
-          <p className="text-white text-lg">Your Financial Advisory Marketplace</p>
+          <p className="text-white text-lg">Your Financial Services Marketplace</p>
         </div>
 
         <Card className="bg-white rounded-2xl shadow-2xl">
