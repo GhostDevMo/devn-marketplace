@@ -8,8 +8,8 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: 'http',
     // For production, you'll need to update this to your API URL
-    // url: 'https://devn-marketplace-production.up.railway.app',
-     url: "http://10.0.2.2:5050",
+     url: 'https://devn-marketplace-production.up.railway.app',
+    // url: "http://10.0.2.2:5050",
     cleartext: true 
   },
   plugins: {
