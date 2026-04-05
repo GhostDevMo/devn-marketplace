@@ -242,15 +242,13 @@ export default function Auth() {
               </TabsContent>
               
               <TabsContent value="register">
-                {isCompletingProfile ? (
-                  <>
-                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-sm text-green-800">
-                        Complete your professional profile to start receiving bookings.
-                      </p>
-                    </div>
-                  </>
-                ) : null}
+{isCompletingProfile && user?.role === "professional" && (
+  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+    <p className="text-sm text-green-800">
+      Complete your professional profile to start receiving bookings.
+    </p>
+  </div>
+)}
                 
                 <form onSubmit={handleRegister} className="space-y-4">
                   {!isCompletingProfile && (
