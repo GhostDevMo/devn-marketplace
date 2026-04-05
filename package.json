@@ -19,7 +19,7 @@
     "mobile:build": "npm run build:mobile && npx cap sync ios"
   },
   "dependencies": {
-    "@capacitor/android": "^8.2.0",
+    "@capacitor/android": "^7.6.1",
     "@capacitor/cli": "^7.6.0",
     "@capacitor/core": "^7.6.0",
     "@capacitor/ios": "^7.6.0",
@@ -113,7 +113,7 @@
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
-    "drizzle-kit": "^0.31.9",
+    "drizzle-kit": "^0.18.1",
     "esbuild": "^0.25.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
