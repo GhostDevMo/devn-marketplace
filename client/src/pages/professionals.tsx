@@ -108,20 +108,20 @@ return (
       {/* Header with Back Button */}
       <div className="bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
+          <div className="flex items-start py-4">
             <Link href="/">
-              <Button variant="ghost" size="sm" className="mr-4">
+              <Button variant="ghost" size="sm" className="mr-4 shrink-0">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                {getServiceTitle(serviceSlug || '')} Professionals
-              </h1>
+            <div className="min-w-0">
+            <h1 className="text-xl font-bold text-gray-900 break-words leading-tight">
+                 {getServiceTitle(serviceSlug || '')} Professionals
+            </h1>
               <p className="text-sm text-gray-600">
                 {professionals?.length || 0} professionals available
-              </p>
-            </div>
+             </p>
+          </div>
           </div>
         </div>
       </div>
