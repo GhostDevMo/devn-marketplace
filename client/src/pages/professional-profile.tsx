@@ -255,7 +255,7 @@ return (
         <Card className="mb-6">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row md:items-center">
-              <div className="flex items-center mb-4 md:mb-0">
+              <div className="flex items-start mb-4 md:mb-0">
                 <img
                   src={
                     (isEditing ? editForm?.profileImageUrl : safeProfileImage)
@@ -263,7 +263,7 @@ return (
                   alt={`${safeFirstName} ${safeLastName}`}
                   className="w-24 h-24 rounded-full object-cover"
                 />
-                <div className="ml-4">
+                <div className="ml-4 min-w-0">
                   {isEditing ? (
                     <form onSubmit={handleEditSave} className="space-y-2">
                       <input
@@ -306,16 +306,16 @@ return (
                     </form>
                   ) : (
                     <>
-                      <h2 className="text-2xl font-bold text-gray-900">
+                      <h2 className="text-2xl font-bold text-gray-900 break-words">
                         {safeFirstName} {safeLastName}
                       </h2>
-                      <p className="text-lg text-primary font-medium">{professional.title}</p>
-                      <div className="flex items-center mt-2">
+                      <p className="text-lg text-primary font-medium break-words">{professional.title}</p>
+                      <div className="flex flex-wrap items-center mt-2 gap-2">
                         <div className="flex items-center mr-4">
                           <div className="flex">
                             {renderStars(averageRating)}
                           </div>
-                          <span className="ml-2 text-sm text-gray-600">
+                          <span className="ml-2 text-sm text-gray-600 break-words">
                             {averageRating.toFixed(1)} ({safeReviewCount} reviews)
                           </span>
                         </div>

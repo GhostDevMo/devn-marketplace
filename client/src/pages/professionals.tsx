@@ -129,7 +129,7 @@ return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Filters */}
         <div className="mb-6">
-          <div className="flex flex-wrap gap-3">
+           <div className="flex items-start py-4">
             <Button
               variant={filter === 'all' ? 'default' : 'outline'}
               size="sm"
