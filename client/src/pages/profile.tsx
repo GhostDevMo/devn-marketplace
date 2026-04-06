@@ -21,6 +21,7 @@ import { LogOut, User, Mail, Trash2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import ClientHeader from "@/components/client-header";
+import Layout from "@/components/Layout";
 
 export default function Profile() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -129,11 +130,9 @@ export default function Profile() {
     },
   });
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ClientHeader />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="space-y-6">
+return (
+  <Layout>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
           {/* Header */}
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
@@ -299,7 +298,6 @@ export default function Profile() {
             </CardContent>
           </Card>
         </div>
-      </div>
-    </div>
+      </Layout>
   );
 }
