@@ -22,6 +22,7 @@ import { ArrowLeft, Edit2, Save, X, User, Star, Users, DollarSign, Calendar, Tra
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import ClientHeader from "@/components/client-header";
+import Layout from "@/components/Layout";
 
 export default function MyProfile() {
   const { user, isAuthenticated } = useAuth();
@@ -206,9 +207,9 @@ export default function MyProfile() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ClientHeader />
+return (
+  <Layout>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -409,5 +410,6 @@ export default function MyProfile() {
 
       </div>
     </div>
+    </Layout>
   );
 }

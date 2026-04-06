@@ -12,6 +12,7 @@ import TimeSlotPicker from "@/components/time-slot-picker";
 import BookingModal from "@/components/booking-modal";
 import ClientHeader from "@/components/client-header";
 import type { Professional, User, Service, Review } from "@shared/schema";
+import Layout from "@/components/Layout";
 
 export default function ProfessionalProfile() {
   const { id } = useParams();
@@ -224,9 +225,9 @@ export default function ProfessionalProfile() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ClientHeader />
+return (
+  <Layout>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
       {/* Header with Back Button */}
       <div className="bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -463,5 +464,6 @@ export default function ProfessionalProfile() {
         />
       )}
     </div>
+  </Layout>
   );
 }

@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Calendar, MessageSquare } from "lucide-react";
 import ClientHeader from "@/components/client-header";
+import Layout from "@/components/Layout";
+
 
 export default function ConfirmedAppointments() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -58,9 +60,9 @@ export default function ConfirmedAppointments() {
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ClientHeader />
+return (
+  <Layout>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
       
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-100">
@@ -169,5 +171,6 @@ export default function ConfirmedAppointments() {
         </Card>
       </div>
     </div>
+  </Layout>
   );
 }

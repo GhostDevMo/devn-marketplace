@@ -11,6 +11,7 @@ import { useParams, useLocation, Link } from "wouter";
 import { ArrowLeft } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import ClientHeader from "@/components/client-header";
+import Layout from "@/components/Layout";
 
 // Load Stripe
 // if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
@@ -191,10 +192,9 @@ export default function Checkout() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ClientHeader />
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mobile-safe-bottom">
+return (
+  <Layout>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
         {/* Back Button */}
         <div className="mb-6">
           <Link href={booking.professional?.id ? `/professional/${booking.professional.id}` : '/professionals'}>
@@ -279,6 +279,6 @@ export default function Checkout() {
           </p>
         </div>
       </div>
-    </div>
+  </Layout>
   );
 }

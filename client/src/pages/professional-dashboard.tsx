@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Calendar, Clock, DollarSign, Users, CheckCircle, XCircle } from "lucide-react";
+import Layout from "@/components/Layout";
 
 export default function ProfessionalDashboard() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -144,9 +145,9 @@ export default function ProfessionalDashboard() {
   const pendingBookings = bookings?.filter((booking: any) => booking.status === 'pending') || [];
   const confirmedBookings = bookings?.filter((booking: any) => booking.status === 'confirmed') || [];
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
+return (
+  <Layout>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
         {/* Header */}
         <div className="mb-6 flex justify-between items-start">
           <div>
@@ -344,6 +345,6 @@ export default function ProfessionalDashboard() {
           </Card>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

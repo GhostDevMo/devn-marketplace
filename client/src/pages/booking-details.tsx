@@ -11,6 +11,7 @@ import { Link, useLocation } from "wouter";
 import { format } from "date-fns";
 import BookingChat from "@/components/booking-chat";
 import ClientHeader from "@/components/client-header";
+import Layout from "@/components/Layout";
 
 export default function BookingDetails() {
   const { toast } = useToast();
@@ -100,9 +101,9 @@ export default function BookingDetails() {
   const isClient = user?.id === booking.clientId;
   const otherParty = isClient ? booking.professional.user : booking.client;
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ClientHeader />
+return (
+  <Layout>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -213,5 +214,6 @@ export default function BookingDetails() {
         </div>
       </div>
     </div>
+  </Layout>
   );
 }

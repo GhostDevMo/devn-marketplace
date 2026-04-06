@@ -11,6 +11,7 @@ import { ArrowLeft, Filter, Calendar } from "lucide-react";
 import { Link } from "wouter";
 import ClientHeader from "@/components/client-header";
 import type { Professional, User, Service } from "@shared/schema";
+import Layout from "@/components/Layout";
 
 interface Booking {
   id: string;
@@ -211,9 +212,9 @@ export default function Bookings() {
     );
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ClientHeader />
+return (
+  <Layout>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -275,5 +276,6 @@ export default function Bookings() {
         {activeTab === 'cancelled' && renderBookingList(cancelledBookings)}
       </div>
     </div>
+  </Layout>
   );
 }

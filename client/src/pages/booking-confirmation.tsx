@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Calendar, Video, CreditCard, Receipt, Home } from "lucide-react";
 import { Link, useParams } from "wouter";
 import ClientHeader from "@/components/client-header";
+import Layout from "@/components/Layout";
 
 export default function BookingConfirmation() {
   const { bookingId } = useParams();
@@ -69,11 +70,9 @@ export default function BookingConfirmation() {
   };
 
   const { date, time } = formatDateTime(booking.scheduledAt);
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ClientHeader />
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+return (
+  <Layout>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
         {/* Success Animation Container */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -218,6 +217,6 @@ export default function BookingConfirmation() {
           </p>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
