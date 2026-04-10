@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { X, CreditCard } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Professional, User, Service } from "@shared/schema";
+import { useEffect} from "react";
 
 interface BookingModalProps {
   professional: Professional & { user: User };
@@ -87,7 +88,7 @@ export default function BookingModal({
 
     // Parse the selected slot to create a proper date
     // Slot format: YYYY-MM-DDTHH:MM (local time)
-    const scheduledAt = new Date(selectedSlot);
+    const scheduledAt = new Date(selectedSlot.replace(" ", "T"));
     if (isNaN(scheduledAt.getTime())) {
       toast({
         title: "Invalid Time Slot",
@@ -115,13 +116,12 @@ export default function BookingModal({
 
     // Server will calculate amount based on service basePrice
     const bookingData = {
-      professionalId: professional.id,
-      serviceId: service.id,
-      scheduledAt: scheduledAt.toISOString(),
-      sessionDuration: 1, // Default to 1 hour
-      specialRequests: specialRequests.trim() || null,
-      status: "pending",
-    };
+  professionalId: professional.id,
+  serviceId: service.id,
+  scheduledAt: scheduledAt.toISOString(),
+  sessionDuration: 1,
+  specialRequests: specialRequests.trim() || null,
+};
 
     try {
       await createBookingMutation.mutateAsync(bookingData);
@@ -178,8 +178,15 @@ export default function BookingModal({
     }
   };
 
+  useEffect(() => {
+  document.body.style.overflow = "hidden";
+  return () => {
+    document.body.style.overflow = "auto";
+  };
+}, []);
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
