@@ -11,7 +11,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { X, CreditCard } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Professional, User, Service } from "@shared/schema";
-import { useEffect } from "react";
 
 interface BookingModalProps {
   professional: Professional & { user: User };
@@ -180,8 +179,8 @@ export default function BookingModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center overflow-y-auto overflow-x-hidden">
-      <Card className="w-full max-w-md mx-4 mt-6 max-h-[90vh] overflow-y-auto overflow-x-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-gray-900">Confirm Booking</h3>
@@ -201,8 +200,8 @@ export default function BookingModal({
                 alt={`${professional.user.firstName} ${professional.user.lastName}`}
                 className="w-12 h-12 rounded-full object-cover"
               />
-              <div className="ml-3 min-w-0">
-                <p className="font-semibold text-gray-900 break-words">
+              <div className="ml-3">
+                <p className="font-semibold text-gray-900">
                   {professional.user.firstName} {professional.user.lastName}
                 </p>
                 <p className="text-sm text-gray-600">{service?.name || 'Financial Consultation'}</p>
@@ -281,7 +280,7 @@ export default function BookingModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex space-x-3 sticky bottom-0 bg-white pt-3">
+          <div className="flex space-x-3">
             <Button
               variant="outline"
               className="flex-1"
