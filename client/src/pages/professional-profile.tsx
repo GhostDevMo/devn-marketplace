@@ -217,13 +217,15 @@ export default function ProfessionalProfile() {
 
   const isOwnProfile = user?.role === "professional" && !id;
   
-  const handleBack = () => {
-    if (isOwnProfile) {
-      window.location.href = "/dashboard";
-    } else {
-      window.history.back();
-    }
-  };
+  const [, setLocation] = useLocation();
+
+const handleBack = () => {
+  if (isOwnProfile) {
+    setLocation("/dashboard");
+  } else {
+    setLocation("/services"); // 🔥 THIS FIXES EVERYTHING
+  }
+};
 
 return (
   <Layout>
@@ -231,7 +233,7 @@ return (
       {/* Header with Back Button */}
       <div className="bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
+          <div className="flex items-start py-4">
             <Button variant="ghost" size="sm" className="mr-4" onClick={handleBack}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
