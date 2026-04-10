@@ -14,7 +14,6 @@ import ClientHeader from "@/components/client-header";
 import type { Professional, User, Service, Review } from "@shared/schema";
 import Layout from "@/components/Layout";
 
-
 export default function ProfessionalProfile() {
   const { id } = useParams();
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -218,15 +217,13 @@ export default function ProfessionalProfile() {
 
   const isOwnProfile = user?.role === "professional" && !id;
   
-  const [, setLocation] = useLocation();
-
-const handleBack = () => {
-  if (isOwnProfile) {
-    setLocation("/dashboard");
-  } else {
-    setLocation("/services"); // 🔥 THIS FIXES EVERYTHING
-  }
-};
+  const handleBack = () => {
+    if (isOwnProfile) {
+      window.location.href = "/dashboard";
+    } else {
+      window.history.back();
+    }
+  };
 
 return (
   <Layout>
