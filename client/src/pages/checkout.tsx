@@ -197,13 +197,16 @@ return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
         {/* Back Button */}
         <div className="mb-6">
-          <Link href={booking.professional?.id ? `/professional/${booking.professional.id}` : '/professionals'}>
-            <Button variant="ghost" className="flex items-center gap-2" data-testid={`button-back-professional-${booking.professional?.id || 'fallback'}`}>
-              <ArrowLeft className="w-4 h-4" />
-              Back to {booking.professional?.user?.firstName} {booking.professional?.user?.lastName}
-            </Button>
-          </Link>
-        </div>
+  <Link href="/">
+    <Button
+      variant="ghost"
+      className="flex items-center gap-2"
+    >
+      <ArrowLeft className="w-4 h-4" />
+      Back to Dashboard
+    </Button>
+  </Link>
+</div>
         
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Complete Your Booking</h1>
