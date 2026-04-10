@@ -189,7 +189,7 @@ useEffect(() => {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
-  <div className="min-h-full flex items-start justify-center p-4">
+  <div className="min-h-full flex justify-center p-4">
       <Card className="w-full max-w-md my-8 max-h-[90vh] overflow-y-auto">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
