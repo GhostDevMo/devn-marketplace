@@ -219,23 +219,11 @@ export default function ProfessionalProfile() {
   
   const handleBack = () => {
     if (isOwnProfile) {
-      window.location.href = "/dashboard";
+      window.location.href = "/professionals";
     } else {
       window.history.back();
     }
   };
-
-  useEffect(() => {
-  if (showBookingModal) {
-    document.body.style.overflow = "hidden";
-  } else {
-    document.body.style.overflow = "";
-  }
-
-  return () => {
-    document.body.style.overflow = "";
-  };
-}, [showBookingModal]);
 
 return (
   <Layout>
