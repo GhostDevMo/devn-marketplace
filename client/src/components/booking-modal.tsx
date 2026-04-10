@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { X, CreditCard } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Professional, User, Service } from "@shared/schema";
+import { useEffect } from "react";
 
 interface BookingModalProps {
   professional: Professional & { user: User };
@@ -63,6 +64,16 @@ export default function BookingModal({
       });
     },
   });
+
+  useEffect(() => {
+  document.body.style.overflow = "hidden";
+  document.body.style.overflowX = "hidden";
+
+  return () => {
+    document.body.style.overflow = "";
+    document.body.style.overflowX = "";
+  };
+}, []);
 
   const handleBooking = async () => {
     if (!agreedToTerms) {
@@ -179,8 +190,8 @@ export default function BookingModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto pb-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center p-4 overflow-y-auto overflow-x-hidden">
+      <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-gray-900">Confirm Booking</h3>
