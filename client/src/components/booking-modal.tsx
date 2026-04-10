@@ -189,6 +189,7 @@ export default function BookingModal({
   return (
   <Layout>
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
+  <div className="min-h-full flex items-start justify-center p-4">
       <Card className="w-full max-w-md my-8">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
@@ -309,6 +310,7 @@ export default function BookingModal({
         </CardContent>
       </Card>
     </div>
-    </Layout>
+    </div>
+  </Layout>
   );
 }
