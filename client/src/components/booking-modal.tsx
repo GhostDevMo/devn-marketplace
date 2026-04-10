@@ -12,7 +12,6 @@ import { X, CreditCard } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Professional, User, Service } from "@shared/schema";
 import { useEffect} from "react";
-import Layout from "@/components/Layout";
 
 interface BookingModalProps {
   professional: Professional & { user: User };
@@ -187,8 +186,7 @@ export default function BookingModal({
 }, []);
 
   return (
-  <Layout>
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
+    <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
   <div className="min-h-full flex items-start justify-center p-4">
       <Card className="w-full max-w-md my-8">
         <CardContent className="p-6">
@@ -311,6 +309,5 @@ export default function BookingModal({
       </Card>
     </div>
     </div>
-  </Layout>
   );
 }
