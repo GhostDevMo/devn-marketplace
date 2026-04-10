@@ -2,10 +2,10 @@ import ClientHeader from "@/components/client-header";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-screen flex flex-col bg-gray-50">
       <ClientHeader />
 
-      <main className="pt-20">
+      <main className="flex-1 overflow-y-auto pt-20 pb-24">
         {children}
       </main>
     </div>
