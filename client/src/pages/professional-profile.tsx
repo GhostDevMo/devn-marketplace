@@ -14,6 +14,7 @@ import ClientHeader from "@/components/client-header";
 import type { Professional, User, Service, Review } from "@shared/schema";
 import Layout from "@/components/Layout";
 
+
 export default function ProfessionalProfile() {
   const { id } = useParams();
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -233,7 +234,7 @@ return (
       {/* Header with Back Button */}
       <div className="bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-start py-4">
+          <div className="flex items-center h-16">
             <Button variant="ghost" size="sm" className="mr-4" onClick={handleBack}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
