@@ -186,8 +186,9 @@ export default function BookingModal({
 }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+  <div className="min-h-full flex items-start justify-center p-4">
+      <Card className="w-full max-w-md my-8">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-gray-900">Confirm Booking</h3>
@@ -306,6 +307,7 @@ export default function BookingModal({
           </div>
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 }
