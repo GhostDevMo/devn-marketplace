@@ -231,7 +231,7 @@ return (
       {/* Header with Back Button */}
       <div className="bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
+          <div className="flex items-start py-4">
             <Button variant="ghost" size="sm" className="mr-4" onClick={handleBack}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -310,7 +310,7 @@ return (
                         {safeFirstName} {safeLastName}
                       </h2>
                       <p className="text-lg text-primary font-medium break-words">{professional.title}</p>
-                      <div className="flex items-center mt-2">
+                      <div className="flex flex-wrap items-center mt-2 gap-2">
                         <div className="flex items-center mr-4">
                           <div className="flex">
                             {renderStars(averageRating)}
