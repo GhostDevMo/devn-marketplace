@@ -191,7 +191,7 @@ useEffect(() => {
     <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
   <div className="min-h-full flex justify-center p-4">
       <Card className="w-full max-w-md my-8 max-h-[90vh] overflow-y-auto">
-        <CardContent className="p-6">
+        <CardContent className="p-6 pb-28">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-gray-900">Confirm Booking</h3>
             <Button variant="ghost" size="sm" onClick={onClose}>
