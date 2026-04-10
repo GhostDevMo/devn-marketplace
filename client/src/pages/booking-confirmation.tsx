@@ -40,6 +40,16 @@ export default function BookingConfirmation() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
+  useEffect(() => {
+  document.body.style.overflow = "hidden";
+  document.body.style.overflowX = "hidden";
+
+  return () => {
+    document.body.style.overflow = "";
+    document.body.style.overflowX = "";
+  };
+}, []);
+
   if (error && isUnauthorizedError(error as Error)) {
     return null; // Will redirect via useEffect
   }

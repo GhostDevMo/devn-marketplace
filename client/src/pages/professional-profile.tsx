@@ -219,7 +219,7 @@ export default function ProfessionalProfile() {
   
   const handleBack = () => {
     if (isOwnProfile) {
-      window.location.href = "/professional-dashboard";
+      window.location.href = "/professionals";
     } else {
       window.history.back();
     }
