@@ -225,6 +225,18 @@ export default function ProfessionalProfile() {
     }
   };
 
+  useEffect(() => {
+  if (showBookingModal) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+  }
+
+  return () => {
+    document.body.style.overflow = "";
+  };
+}, [showBookingModal]);
+
 return (
   <Layout>
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">

@@ -65,16 +65,6 @@ export default function BookingModal({
     },
   });
 
-  useEffect(() => {
-  document.body.style.overflow = "hidden";
-  document.body.style.overflowX = "hidden";
-
-  return () => {
-    document.body.style.overflow = "";
-    document.body.style.overflowX = "";
-  };
-}, []);
-
   const handleBooking = async () => {
     if (!agreedToTerms) {
       toast({
@@ -190,8 +180,8 @@ export default function BookingModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center p-4 overflow-y-auto overflow-x-hidden">
-      <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto overflow-x-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center overflow-y-auto overflow-x-hidden">
+      <Card className="w-full max-w-md mx-4 mt-6 max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-gray-900">Confirm Booking</h3>
@@ -211,8 +201,8 @@ export default function BookingModal({
                 alt={`${professional.user.firstName} ${professional.user.lastName}`}
                 className="w-12 h-12 rounded-full object-cover"
               />
-              <div className="ml-3">
-                <p className="font-semibold text-gray-900">
+              <div className="ml-3 min-w-0">
+                <p className="font-semibold text-gray-900 break-words">
                   {professional.user.firstName} {professional.user.lastName}
                 </p>
                 <p className="text-sm text-gray-600">{service?.name || 'Financial Consultation'}</p>
