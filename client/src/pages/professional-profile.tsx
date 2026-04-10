@@ -219,7 +219,7 @@ export default function ProfessionalProfile() {
   
   const handleBack = () => {
     if (isOwnProfile) {
-      window.location.href = "/professionals";
+      window.location.href = "/dashboard";
     } else {
       window.history.back();
     }
@@ -310,7 +310,7 @@ return (
                         {safeFirstName} {safeLastName}
                       </h2>
                       <p className="text-lg text-primary font-medium break-words">{professional.title}</p>
-                      <div className="flex flex-wrap items-center mt-2 gap-2">
+                      <div className="flex items-center mt-2">
                         <div className="flex items-center mr-4">
                           <div className="flex">
                             {renderStars(averageRating)}
