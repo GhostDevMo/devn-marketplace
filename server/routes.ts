@@ -277,12 +277,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .map(b => new Date(b.scheduledAt).toISOString())
       );
 
-      // Helper: format a Date as "HH:MM AM/PM"
-      function formatHour(hour: number): string {
+      // Helper: format an hour number as "H:00 AM/PM"
+      const formatHour = (hour: number): string => {
         const period = hour < 12 ? 'AM' : 'PM';
         const h = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
         return `${h}:00 ${period}`;
-      }
+      };
 
       const slots = [];
       const today = new Date();
