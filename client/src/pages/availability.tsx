@@ -79,23 +79,11 @@ export default function Availability() {
     }
   }, [isAuthenticated, isLoading]);
 
-  const { isLoading: slotsLoading } = useQuery({
-    queryKey: ["/api/professional/availability"],
-    enabled: !!isAuthenticated,
-    // @ts-ignore — queryClient fetcher returns the parsed JSON
-    select: (data: any[]) => data,
-    onSuccess: (data: any[]) => {
-      setSchedule(buildInitialSchedule(data));
-    },
-  });
-
-  // Also handle data via useQuery properly
-  const { data: existingSlots } = useQuery<Array<{ dayOfWeek: number; startTime: string; endTime: string }>>({
+  const { data: existingSlots, isLoading: slotsLoading } = useQuery<Array<{ dayOfWeek: number; startTime: string; endTime: string }>>({
     queryKey: ["/api/professional/availability"],
     enabled: !!isAuthenticated,
   });
 
-  // Sync existing slots into state when loaded
   useEffect(() => {
     if (existingSlots) {
       setSchedule(buildInitialSchedule(existingSlots));
