@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, DollarSign, TrendingUp, FileText, Clock, CheckCircle } from "lucide-react";
+import { ArrowLeft, DollarSign, FileText, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
@@ -69,7 +69,7 @@ export default function PayoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-safe">
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -88,31 +88,17 @@ export default function PayoutPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
         {/* Earnings Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
                 <DollarSign className="h-8 w-8 text-green-500" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Earned (70%)</p>
+                  <p className="text-sm font-medium text-gray-600">Total Earned</p>
                   <p className="text-2xl font-bold text-green-600">
                     ${earningsData?.summary?.totalEarned || "0.00"}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <TrendingUp className="h-8 w-8 text-blue-500" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Platform Fee (30%)</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    ${earningsData?.summary?.totalPlatformFees || "0.00"}
                   </p>
                 </div>
               </div>
@@ -133,18 +119,6 @@ export default function PayoutPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Revenue Split Information */}
-        <Card className="mb-8 bg-blue-50 border-blue-200">
-          <CardContent className="p-6">
-            <h3 className="font-semibold text-blue-900 mb-2">Revenue Split</h3>
-            <p className="text-sm text-blue-700">
-              You receive <span className="font-bold">70%</span> of each session payment. 
-              The platform fee of <span className="font-bold">30%</span> covers payment processing, 
-              platform maintenance, and customer support.
-            </p>
-          </CardContent>
-        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Completed Sessions */}
@@ -221,17 +195,9 @@ export default function PayoutPage() {
                         </div>
                         <Badge variant="default">Completed</Badge>
                       </div>
-                      <div className="mt-3 pt-3 border-t space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Total Amount:</span>
-                          <span className="font-medium">${earning.totalAmount.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Platform Fee (30%):</span>
-                          <span className="text-red-600">-${earning.platformFee.toFixed(2)}</span>
-                        </div>
+                      <div className="mt-3 pt-3 border-t">
                         <div className="flex justify-between text-sm font-semibold">
-                          <span className="text-green-600">Your Earnings (70%):</span>
+                          <span className="text-green-600">Your Earnings:</span>
                           <span className="text-green-600">${earning.professionalEarning.toFixed(2)}</span>
                         </div>
                       </div>
