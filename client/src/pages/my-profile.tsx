@@ -115,15 +115,24 @@ export default function MyProfile() {
   const handleSave = async () => {
     // Upload profile image first if changed
     if (imagePreview) {
-      const token = localStorage.getItem('token');
-      const headers: any = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      await fetch('/api/profile', {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify({ profileImageUrl: imagePreview }),
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      try {
+        const token = localStorage.getItem('token');
+        const headers: any = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const res = await fetch('/api/profile', {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify({ profileImageUrl: imagePreview }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || `Upload failed (${res.status})`);
+        }
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      } catch (err: any) {
+        toast({ title: "Image upload failed", description: err.message || "Please try again.", variant: "destructive" });
+        return;
+      }
     }
     const updatedData = {
       ...editForm,
@@ -158,15 +167,23 @@ export default function MyProfile() {
     reader.onload = (ev) => {
       const img = new Image();
       img.onload = () => {
-        const MAX = 400;
+        const MAX = 300;
         const scale = Math.min(MAX / img.width, MAX / img.height, 1);
         const canvas = document.createElement("canvas");
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
-        setImagePreview(canvas.toDataURL("image/jpeg", 0.8));
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setImagePreview(canvas.toDataURL("image/jpeg", 0.7));
+      };
+      img.onerror = () => {
+        toast({ title: "Invalid image", description: "Could not read the selected file.", variant: "destructive" });
       };
       img.src = ev.target?.result as string;
+    };
+    reader.onerror = () => {
+      toast({ title: "Failed to read file", description: "Please try a different image.", variant: "destructive" });
     };
     reader.readAsDataURL(file);
   };
