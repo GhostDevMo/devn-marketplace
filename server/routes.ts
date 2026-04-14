@@ -523,7 +523,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update user profile
       const updatedUser = await storage.updateUser(userId, updateData);
-      res.json(updatedUser);
+      // Don't echo profileImageUrl back — it can be a large base64 string
+      const { profileImageUrl: _omit, ...safeUser } = updatedUser;
+      res.json(safeUser);
     } catch (error) {
       console.error("Error updating profile:", error);
       res.status(500).json({ message: "Failed to update profile" });
