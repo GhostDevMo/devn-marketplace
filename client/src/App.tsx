@@ -22,6 +22,7 @@ import BookingConfirmation from "@/pages/booking-confirmation";
 import Payout from "@/pages/payout";
 import PendingRequests from "@/pages/pending-requests";
 import ConfirmedAppointments from "@/pages/confirmed-appointments";
+import Availability from "@/pages/availability";
 import MobileNav from "@/components/mobile-nav";
 import ClientHeader from "@/components/client-header";
 import { StatusBar } from '@capacitor/status-bar';
@@ -67,6 +68,7 @@ function Router() {
           <Route path="/professional-dashboard" component={ProfessionalDashboard} />
           <Route path="/pending-requests" component={PendingRequests} />
           <Route path="/confirmed-appointments" component={ConfirmedAppointments} />
+          <Route path="/availability" component={Availability} />
           <Route path="/payout" component={Payout} />
           <Route path="/professionals" component={Professionals} />
           <Route path="/professionals/:serviceSlug" component={Professionals} />
