@@ -6,7 +6,7 @@ import { storage } from "./storage";
 import { nanoid } from "nanoid";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
-import { professionals, bookings, reviews, services, insertReviewSchema } from "@shared/schema";
+import { professionals, bookings, reviews, services, availabilitySlots, insertReviewSchema } from "@shared/schema";
 import { db } from "./db";
 import { setupChatWebSocket } from "./chatSocket";
 
@@ -186,6 +186,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Availability management routes (must come before parameterized :id route)
+  app.get('/api/professional/availability', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const professional = await storage.getProfessionalByUserId(req.user!.id);
+      if (!professional) {
+        return res.status(404).json({ message: "Professional profile not found" });
+      }
+      const slots = await storage.getAvailabilitySlots(professional.id);
+      res.json(slots);
+    } catch (error) {
+      console.error("Error fetching availability:", error);
+      res.status(500).json({ message: "Failed to fetch availability" });
+    }
+  });
+
+  app.put('/api/professional/availability', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const professional = await storage.getProfessionalByUserId(req.user!.id);
+      if (!professional) {
+        return res.status(404).json({ message: "Professional profile not found" });
+      }
+
+      const slots: Array<{ dayOfWeek: number; startTime: string; endTime: string }> = req.body.slots;
+
+      if (!Array.isArray(slots)) {
+        return res.status(400).json({ message: "slots must be an array" });
+      }
+
+      // Validate each slot
+      for (const slot of slots) {
+        if (
+          typeof slot.dayOfWeek !== 'number' || slot.dayOfWeek < 0 || slot.dayOfWeek > 6 ||
+          typeof slot.startTime !== 'string' || !/^\d{2}:\d{2}$/.test(slot.startTime) ||
+          typeof slot.endTime !== 'string' || !/^\d{2}:\d{2}$/.test(slot.endTime) ||
+          slot.startTime >= slot.endTime
+        ) {
+          return res.status(400).json({ message: "Invalid slot data" });
+        }
+      }
+
+      const saved = await storage.setAvailabilitySlots(professional.id, slots);
+      res.json(saved);
+    } catch (error) {
+      console.error("Error saving availability:", error);
+      res.status(500).json({ message: "Failed to save availability" });
+    }
+  });
+
   app.get('/api/professional/:id', async (req: AuthRequest, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -211,52 +259,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid professional ID" });
       }
 
-      // Generate time slots for the next 7 days
-      const slots = [];
-      const today = new Date();
-      
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(today);
-        date.setDate(date.getDate() + i);
-        
-        const dayName = i === 0 ? 'Today' : 
-                       i === 1 ? 'Tomorrow' : 
-                       date.toLocaleDateString('en-US', { weekday: 'long' });
-        
-        const times = [
-          { display: '9:00 AM', hour: 9, minute: 0 },
-          { display: '11:00 AM', hour: 11, minute: 0 },
-          { display: '2:00 PM', hour: 14, minute: 0 },
-          { display: '4:00 PM', hour: 16, minute: 0 }
-        ];
-        
-        for (const time of times) {
-          const slotDate = new Date(date);
-          slotDate.setHours(time.hour, time.minute, 0, 0);
-          
-          // Don't show past time slots for today
-          const now = new Date();
-          const isPastSlot = i === 0 && slotDate.getTime() <= now.getTime();
-          
-          if (!isPastSlot) {
-            // Format as YYYY-MM-DDTHH:MM to preserve local time without timezone conversion
-            const year = slotDate.getFullYear();
-            const month = String(slotDate.getMonth() + 1).padStart(2, '0');
-            const day = String(slotDate.getDate()).padStart(2, '0');
-            const hour = String(slotDate.getHours()).padStart(2, '0');
-            const minute = String(slotDate.getMinutes()).padStart(2, '0');
-            const localDateTimeString = `${year}-${month}-${day}T${hour}:${minute}`;
-            
-            slots.push({
-              id: localDateTimeString,
-              day: dayName,
-              time: time.display,
-              date: date.toDateString(),
-              fullDate: slotDate,
-            });
-          }
-        }
-      }
+      // Fetch this professional's availability windows from the DB
+      const availabilityWindows = await db
+        .select()
+        .from(availabilitySlots)
+        .where(eq(availabilitySlots.professionalId, id));
 
       // Get existing bookings for this professional (pending or confirmed)
       const existingBookings = await db
@@ -264,16 +271,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(bookings)
         .where(eq(bookings.professionalId, id));
 
-      // Filter out booked slots
       const bookedTimes = new Set(
         existingBookings
           .filter(b => b.status === 'pending' || b.status === 'confirmed')
           .map(b => new Date(b.scheduledAt).toISOString())
       );
 
-      const availableSlots = slots.filter(slot => !bookedTimes.has(slot.fullDate.toISOString()));
+      // Helper: format an hour number as "H:00 AM/PM"
+      const formatHour = (hour: number): string => {
+        const period = hour < 12 ? 'AM' : 'PM';
+        const h = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+        return `${h}:00 ${period}`;
+      };
 
-      res.json(availableSlots);
+      const slots = [];
+      const today = new Date();
+      const now = new Date();
+
+      // If the professional has no availability configured, fall back to default windows
+      const hasAvailability = availabilityWindows.length > 0;
+
+      for (let i = 0; i < 14; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() + i);
+        const dayOfWeek = date.getDay(); // 0=Sun … 6=Sat
+
+        const dayName = i === 0 ? 'Today' :
+                       i === 1 ? 'Tomorrow' :
+                       date.toLocaleDateString('en-US', { weekday: 'long' });
+
+        // Determine which hours are available for this day
+        let hours: number[] = [];
+
+        if (hasAvailability) {
+          const dayWindows = availabilityWindows.filter(
+            w => w.dayOfWeek === dayOfWeek && w.isActive
+          );
+          for (const window of dayWindows) {
+            const [startH] = window.startTime.split(':').map(Number);
+            const [endH] = window.endTime.split(':').map(Number);
+            for (let h = startH; h < endH; h++) {
+              hours.push(h);
+            }
+          }
+        } else {
+          // Default fallback: 9 AM, 11 AM, 2 PM, 4 PM
+          hours = [9, 11, 14, 16];
+        }
+
+        for (const hour of hours) {
+          const slotDate = new Date(date);
+          slotDate.setHours(hour, 0, 0, 0);
+
+          // Skip past slots
+          if (i === 0 && slotDate.getTime() <= now.getTime()) continue;
+
+          const year = slotDate.getFullYear();
+          const month = String(slotDate.getMonth() + 1).padStart(2, '0');
+          const day = String(slotDate.getDate()).padStart(2, '0');
+          const hourStr = String(slotDate.getHours()).padStart(2, '0');
+          const localDateTimeString = `${year}-${month}-${day}T${hourStr}:00`;
+
+          if (!bookedTimes.has(slotDate.toISOString())) {
+            slots.push({
+              id: localDateTimeString,
+              day: dayName,
+              time: formatHour(hour),
+              date: date.toDateString(),
+              fullDate: slotDate,
+            });
+          }
+        }
+      }
+
+      res.json(slots);
     } catch (error) {
       console.error("Error fetching available slots:", error);
       res.status(500).json({ message: "Failed to fetch available slots" });
