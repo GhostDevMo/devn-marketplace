@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Edit2, Save, X, User, Star, Users, DollarSign, Calendar, Trash2 } from "lucide-react";
+import { ArrowLeft, Edit2, Save, X, User, Star, Users, Trash2, Camera } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import ClientHeader from "@/components/client-header";
@@ -34,6 +34,8 @@ export default function MyProfile() {
     experience: "",
     hourlyRate: "",
   });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch professional profile for current user
   const { data: professional, isLoading, error } = useQuery({
@@ -110,7 +112,19 @@ export default function MyProfile() {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    // Upload profile image first if changed
+    if (imagePreview) {
+      const token = localStorage.getItem('token');
+      const headers: any = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      await fetch('/api/profile', {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ profileImageUrl: imagePreview }),
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    }
     const updatedData = {
       ...editForm,
       experience: parseInt(editForm.experience) || 0,
@@ -128,6 +142,33 @@ export default function MyProfile() {
       });
     }
     setIsEditing(false);
+    setImagePreview(null);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Image too large", description: "Please choose an image under 5MB.", variant: "destructive" });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 400;
+        const scale = Math.min(MAX / img.width, MAX / img.height, 1);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setImagePreview(canvas.toDataURL("image/jpeg", 0.8));
+      };
+      img.src = ev.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   };
 
   // Delete account mutation
@@ -256,8 +297,35 @@ return (
         <Card>
           <CardContent className="p-6">
             <div className="flex items-start space-x-4">
-              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
-                <User className="w-10 h-10 text-primary" />
+              {/* Profile picture */}
+              <div className="relative">
+                <div className="w-20 h-20 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
+                  {imagePreview || user?.profileImageUrl ? (
+                    <img
+                      src={imagePreview || user?.profileImageUrl}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-10 h-10 text-primary" />
+                  )}
+                </div>
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 bg-primary text-white rounded-full p-1.5 shadow-md hover:bg-primary/90 transition-colors"
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageSelect}
+                />
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
