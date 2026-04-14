@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Calendar, Clock, DollarSign, Users, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, Clock, DollarSign, Users, CheckCircle, XCircle, CalendarClock } from "lucide-react";
 import Layout from "@/components/Layout";
 
 export default function ProfessionalDashboard() {
@@ -162,6 +162,16 @@ return (
             >
               <DollarSign className="h-4 w-4" />
               Earnings
+            </Button>
+          </Link>
+        </div>
+
+        {/* Availability shortcut */}
+        <div className="mb-6">
+          <Link href="/availability">
+            <Button variant="outline" className="flex items-center gap-2">
+              <CalendarClock className="h-4 w-4" />
+              Manage Availability
             </Button>
           </Link>
         </div>
