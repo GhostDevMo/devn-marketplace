@@ -15,6 +15,7 @@ import {
   type Professional,
   type Booking,
   type Review,
+  type AvailabilitySlot,
   type ChatMessage,
   type InsertBooking,
   type InsertReview,
@@ -96,6 +97,10 @@ export interface IStorage {
   // Chat operations
   getChatMessagesByBookingId(bookingId: string): Promise<Array<ChatMessage & { sender: User }>>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+
+  // Availability operations
+  getAvailabilitySlots(professionalId: number): Promise<AvailabilitySlot[]>;
+  setAvailabilitySlots(professionalId: number, slots: Array<{ dayOfWeek: number; startTime: string; endTime: string }>): Promise<AvailabilitySlot[]>;
 
   // Payout operations
   getCompletedBookingsByProfessional(professionalId: number): Promise<Array<Booking & { service: Service, client: User }>>;
@@ -603,6 +608,34 @@ export class DatabaseStorage implements IStorage {
       .from(payoutRequests)
       .where(eq(payoutRequests.professionalId, professionalId))
       .orderBy(desc(payoutRequests.requestedAt));
+  }
+
+  async getAvailabilitySlots(professionalId: number): Promise<AvailabilitySlot[]> {
+    return await db
+      .select()
+      .from(availabilitySlots)
+      .where(and(
+        eq(availabilitySlots.professionalId, professionalId),
+        eq(availabilitySlots.isActive, true),
+      ))
+      .orderBy(availabilitySlots.dayOfWeek, availabilitySlots.startTime);
+  }
+
+  async setAvailabilitySlots(
+    professionalId: number,
+    slots: Array<{ dayOfWeek: number; startTime: string; endTime: string }>,
+  ): Promise<AvailabilitySlot[]> {
+    // Delete all existing slots for this professional then insert the new set
+    await db.delete(availabilitySlots).where(eq(availabilitySlots.professionalId, professionalId));
+
+    if (slots.length === 0) return [];
+
+    const inserted = await db
+      .insert(availabilitySlots)
+      .values(slots.map(s => ({ ...s, professionalId, isActive: true })))
+      .returning();
+
+    return inserted;
   }
 }
 
