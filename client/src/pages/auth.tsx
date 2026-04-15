@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import logoImage from "@assets/DEVN. (1)_1760493848111.png";
@@ -234,6 +234,13 @@ export default function Auth() {
                       onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
                       required
                     />
+                  </div>
+                  <div className="text-right">
+                    <Link href="/forgot-password">
+                      <span className="text-sm text-primary hover:underline cursor-pointer">
+                        Forgot password?
+                      </span>
+                    </Link>
                   </div>
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Signing in..." : "Sign In"}
