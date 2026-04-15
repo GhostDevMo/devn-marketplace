@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -212,6 +212,13 @@ export default function Login() {
                       onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                       required
                     />
+                  </div>
+                  <div className="text-right">
+                    <Link href="/forgot-password">
+                      <span className="text-sm text-primary hover:underline cursor-pointer">
+                        Forgot password?
+                      </span>
+                    </Link>
                   </div>
                   <Button
                     type="submit"
