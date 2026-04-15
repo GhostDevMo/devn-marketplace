@@ -23,6 +23,8 @@ import Payout from "@/pages/payout";
 import PendingRequests from "@/pages/pending-requests";
 import ConfirmedAppointments from "@/pages/confirmed-appointments";
 import Availability from "@/pages/availability";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 import MobileNav from "@/components/mobile-nav";
 import ClientHeader from "@/components/client-header";
 import { StatusBar } from '@capacitor/status-bar';
@@ -63,6 +65,8 @@ function Router() {
     <Switch>
       <Route path="/" component={isAuthenticated ? HomeComponent : Auth} />
       <Route path="/auth" component={Auth} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password/:token" component={ResetPassword} />
       {isAuthenticated && (
         <>
           <Route path="/professional-dashboard" component={ProfessionalDashboard} />

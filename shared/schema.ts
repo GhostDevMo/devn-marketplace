@@ -148,6 +148,14 @@ export const availabilitySlots = pgTable("availability_slots", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  token: varchar("token", { length: 64 }).unique().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const payoutRequests = pgTable("payout_requests", {
   id: serial("id").primaryKey(),
   professionalId: integer("professional_id").references(() => professionals.id).notNull(),
@@ -328,4 +336,5 @@ export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type PayoutRequest = typeof payoutRequests.$inferSelect;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPayoutRequest = z.infer<typeof insertPayoutRequestSchema>;
