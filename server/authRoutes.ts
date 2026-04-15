@@ -12,29 +12,35 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 
 function createTransport() {
-  // Resend SMTP (recommended) — set RESEND_API_KEY in Railway
   if (process.env.RESEND_API_KEY) {
     return nodemailer.createTransport({
       host: 'smtp.resend.com',
       port: 465,
       secure: true,
       auth: { user: 'resend', pass: process.env.RESEND_API_KEY },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
   }
   return null;
 }
 
-async function sendEmail(to: string, subject: string, html: string) {
+// Fire-and-forget — never blocks the HTTP response
+function sendEmailBackground(to: string, subject: string, html: string) {
   const transport = createTransport();
   if (!transport) {
-    // Dev fallback — no email config yet
-    return null;
+    return; // no email config, skip silently
   }
-  return transport.sendMail({
+  transport.sendMail({
     from: process.env.EMAIL_FROM || 'noreply@devn.app',
     to,
     subject,
     html,
+  }).then(() => {
+    console.log(`[EMAIL] Sent to ${to}`);
+  }).catch((err: any) => {
+    console.error(`[EMAIL] Failed to send to ${to}:`, err.message);
   });
 }
 
@@ -292,7 +298,12 @@ router.post('/forgot-password', async (req, res: Response) => {
     const appUrl = process.env.APP_URL || 'http://localhost:5050';
     const resetUrl = `${appUrl}/reset-password/${token}`;
 
-    const emailSent = await sendEmail(
+    // Respond immediately — never make the user wait for SMTP
+    res.json({ message: 'If that email exists, a reset link has been sent.' });
+
+    // Send email in the background after responding
+    console.log(`[DEV] Password reset link for ${email}: ${resetUrl}`);
+    sendEmailBackground(
       email,
       'Reset your Devn password',
       `
@@ -305,12 +316,6 @@ router.post('/forgot-password', async (req, res: Response) => {
         </div>
       `
     );
-    if (!emailSent) {
-      // Dev fallback — log the link so it can be tested without email config
-      console.log(`[DEV] Password reset link for ${email}: ${resetUrl}`);
-    }
-
-    res.json({ message: 'If that email exists, a reset link has been sent.' });
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({ message: 'Internal server error' });
