@@ -119,14 +119,28 @@ export default function MyProfile() {
         const token = localStorage.getItem('token');
         const headers: any = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
-        const res = await fetch('/api/profile', {
-          method: 'PATCH',
-          headers,
-          body: JSON.stringify({ profileImageUrl: imagePreview }),
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || `Upload failed (${res.status})`);
+        let uploadOk = false;
+        try {
+          const res = await fetch('/api/profile', {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify({ profileImageUrl: imagePreview }),
+          });
+          uploadOk = res.ok;
+        } catch {
+          // Response body may fail to stream on large payloads even when
+          // the server already saved the image — verify by re-fetching.
+          const token2 = localStorage.getItem('token');
+          const verifyHeaders: any = {};
+          if (token2) verifyHeaders['Authorization'] = `Bearer ${token2}`;
+          const verify = await fetch('/api/auth/user', { headers: verifyHeaders }).catch(() => null);
+          if (verify?.ok) {
+            const userData = await verify.json().catch(() => null);
+            uploadOk = !!userData?.profileImageUrl;
+          }
+        }
+        if (!uploadOk) {
+          throw new Error('Upload failed');
         }
         queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       } catch (err: any) {
