@@ -60,7 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user!.id;
       const professional = await storage.getProfessionalByUserId(userId);
-      
+
       if (!professional) {
         return res.status(404).json({ message: "Professional profile not found" });
       }
@@ -69,6 +69,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching professional profile:", error);
       res.status(500).json({ message: "Failed to fetch professional profile" });
+    }
+  });
+
+  app.patch('/api/professional/profile', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { title, bio, experience } = req.body;
+      const updated = await storage.updateProfessional(userId, {
+        ...(title !== undefined && { title }),
+        ...(bio !== undefined && { bio }),
+        ...(experience !== undefined && { experience: parseInt(experience) || 0 }),
+      });
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating professional profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
     }
   });
 

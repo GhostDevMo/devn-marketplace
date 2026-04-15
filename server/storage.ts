@@ -92,6 +92,7 @@ export interface IStorage {
   // Additional user operations
   updateUser(id: string, data: Partial<User>): Promise<User>;
   getProfessionalByUserId(userId: string): Promise<Professional | undefined>;
+  updateProfessional(userId: string, data: { title?: string; bio?: string; experience?: number }): Promise<Professional>;
   deleteUser(id: string): Promise<void>;
 
   // Chat operations
@@ -546,6 +547,15 @@ export class DatabaseStorage implements IStorage {
       .from(professionals)
       .where(eq(professionals.userId, userId));
     return professional;
+  }
+
+  async updateProfessional(userId: string, data: { title?: string; bio?: string; experience?: number }): Promise<Professional> {
+    const [updated] = await db
+      .update(professionals)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(professionals.userId, userId))
+      .returning();
+    return updated;
   }
 
   async getChatMessagesByBookingId(bookingId: string): Promise<Array<ChatMessage & { sender: User }>> {
