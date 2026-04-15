@@ -9,9 +9,34 @@ import {
 } from './auth';
 import { storage } from './storage';
 import crypto from 'crypto';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+function createTransport() {
+  // Resend SMTP (recommended) — set RESEND_API_KEY in Railway
+  if (process.env.RESEND_API_KEY) {
+    return nodemailer.createTransport({
+      host: 'smtp.resend.com',
+      port: 465,
+      secure: true,
+      auth: { user: 'resend', pass: process.env.RESEND_API_KEY },
+    });
+  }
+  return null;
+}
+
+async function sendEmail(to: string, subject: string, html: string) {
+  const transport = createTransport();
+  if (!transport) {
+    // Dev fallback — no email config yet
+    return null;
+  }
+  return transport.sendMail({
+    from: process.env.EMAIL_FROM || 'noreply@devn.app',
+    to,
+    subject,
+    html,
+  });
+}
 
 const router = Router();
 
@@ -267,22 +292,20 @@ router.post('/forgot-password', async (req, res: Response) => {
     const appUrl = process.env.APP_URL || 'http://localhost:5050';
     const resetUrl = `${appUrl}/reset-password/${token}`;
 
-    if (resend) {
-      await resend.emails.send({
-        from: process.env.EMAIL_FROM || 'noreply@devn.app',
-        to: email,
-        subject: 'Reset your Devn password',
-        html: `
-          <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-            <h2 style="color:#1e40af">Reset your password</h2>
-            <p>Hi ${user.firstName || ''},</p>
-            <p>We received a request to reset your Devn account password. Click the button below to set a new password. This link expires in <strong>1 hour</strong>.</p>
-            <a href="${resetUrl}" style="display:inline-block;margin:16px 0;padding:12px 24px;background:#1e40af;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Reset Password</a>
-            <p style="color:#6b7280;font-size:13px">If you didn't request this, you can safely ignore this email.</p>
-          </div>
-        `,
-      });
-    } else {
+    const emailSent = await sendEmail(
+      email,
+      'Reset your Devn password',
+      `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+          <h2 style="color:#1e40af">Reset your password</h2>
+          <p>Hi ${user.firstName || ''},</p>
+          <p>We received a request to reset your Devn account password. Click the button below to set a new password. This link expires in <strong>1 hour</strong>.</p>
+          <a href="${resetUrl}" style="display:inline-block;margin:16px 0;padding:12px 24px;background:#1e40af;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Reset Password</a>
+          <p style="color:#6b7280;font-size:13px">If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `
+    );
+    if (!emailSent) {
       // Dev fallback — log the link so it can be tested without email config
       console.log(`[DEV] Password reset link for ${email}: ${resetUrl}`);
     }
