@@ -11,6 +11,10 @@ import { storage } from './storage';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 
+console.log('[EMAIL] RESEND_API_KEY set:', !!process.env.RESEND_API_KEY);
+console.log('[EMAIL] EMAIL_FROM:', process.env.EMAIL_FROM || '(not set, using noreply@devn.app)');
+console.log('[EMAIL] APP_URL:', process.env.APP_URL || '(not set, using http://localhost:5050)');
+
 function createTransport() {
   if (process.env.RESEND_API_KEY) {
     return nodemailer.createTransport({
@@ -23,6 +27,7 @@ function createTransport() {
       socketTimeout: 10000,
     });
   }
+  console.warn('[EMAIL] RESEND_API_KEY not set — emails will not be sent');
   return null;
 }
 
