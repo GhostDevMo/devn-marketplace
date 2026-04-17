@@ -30,8 +30,9 @@ import ClientHeader from "@/components/client-header";
 import { StatusBar } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 
-if (Capacitor.getPlatform() === 'android') {
+if (Capacitor.getPlatform() !== 'web') {
   StatusBar.setOverlaysWebView({ overlay: false });
+  StatusBar.setBackgroundColor({ color: '#ffffff' });
 }
 
 function Router() {
