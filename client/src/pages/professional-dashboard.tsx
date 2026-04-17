@@ -178,7 +178,7 @@ return (
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto">
-          <Link href="/professionals">
+          <Link href="/confirmed-appointments">
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
