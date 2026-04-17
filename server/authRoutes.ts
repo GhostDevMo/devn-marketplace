@@ -9,41 +9,33 @@ import {
 } from './auth';
 import { storage } from './storage';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
 
 console.log('[EMAIL] RESEND_API_KEY set:', !!process.env.RESEND_API_KEY);
 console.log('[EMAIL] EMAIL_FROM:', process.env.EMAIL_FROM || '(not set, using noreply@devn.app)');
 console.log('[EMAIL] APP_URL:', process.env.APP_URL || '(not set, using http://localhost:5050)');
 
-function createTransport() {
-  if (process.env.RESEND_API_KEY) {
-    return nodemailer.createTransport({
-      host: 'smtp.resend.com',
-      port: 587,
-      secure: false,
-      auth: { user: 'resend', pass: process.env.RESEND_API_KEY },
-      connectionTimeout: 15000,
-      greetingTimeout: 15000,
-      socketTimeout: 15000,
-    });
-  }
-  console.warn('[EMAIL] RESEND_API_KEY not set — emails will not be sent');
-  return null;
-}
-
-// Fire-and-forget — never blocks the HTTP response
+// Fire-and-forget via Resend HTTP API — SMTP is blocked on Railway
 function sendEmailBackground(to: string, subject: string, html: string) {
-  const transport = createTransport();
-  if (!transport) {
-    return; // no email config, skip silently
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn('[EMAIL] RESEND_API_KEY not set — email skipped');
+    return;
   }
-  transport.sendMail({
-    from: process.env.EMAIL_FROM || 'noreply@devn.app',
-    to,
-    subject,
-    html,
-  }).then(() => {
-    console.log(`[EMAIL] Sent to ${to}`);
+  const from = process.env.EMAIL_FROM || 'noreply@devn.app';
+  fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ from, to, subject, html }),
+  }).then(async (res) => {
+    if (res.ok) {
+      console.log(`[EMAIL] Sent to ${to}`);
+    } else {
+      const body = await res.text();
+      console.error(`[EMAIL] Resend API error ${res.status}:`, body);
+    }
   }).catch((err: any) => {
     console.error(`[EMAIL] Failed to send to ${to}:`, err.message);
   });
