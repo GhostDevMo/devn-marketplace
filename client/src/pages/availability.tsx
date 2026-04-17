@@ -176,22 +176,20 @@ export default function Availability() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Fixed header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <div className="min-h-screen bg-gray-50 pt-20">
+      {/* Sub-header below ClientHeader */}
+      <div className="bg-white border-b">
         <div className="max-w-2xl mx-auto px-4">
-          <div className="flex items-center h-16">
+          <div className="flex items-center h-12">
             <Button variant="ghost" size="sm" onClick={() => navigate("/professional-dashboard")}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-xl font-bold text-gray-900 ml-2 flex items-center gap-2">
+            <h1 className="text-lg font-bold text-gray-900 ml-2 flex items-center gap-2">
               <Clock className="h-5 w-5" /> Set Your Availability
             </h1>
           </div>
         </div>
       </div>
-      {/* Spacer */}
-      <div style={{ height: 'calc(64px + env(safe-area-inset-top))' }} />
 
       <div className="max-w-2xl mx-auto px-4 mobile-safe-bottom py-4">
         <div className="mb-4">
