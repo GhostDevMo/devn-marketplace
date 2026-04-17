@@ -69,8 +69,9 @@ export default function PayoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-safe">
-      <div className="bg-white border-b" style={{ paddingTop: 'env(safe-area-inset-top, 44px)' }}>
+    <div className="min-h-screen bg-gray-50">
+      {/* Fixed header that clears the iOS status bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
@@ -87,6 +88,8 @@ export default function PayoutPage() {
           </div>
         </div>
       </div>
+      {/* Spacer to push content below fixed header */}
+      <div style={{ height: 'calc(64px + env(safe-area-inset-top))' }} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
         {/* Earnings Summary */}
