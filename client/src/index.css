@@ -60,11 +60,10 @@
 
 body {
   margin: 0;
-  padding-top: env(safe-area-inset-top);
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.4;
   font-weight: 400;
-  background-color: hsl(120, 24%, 28%);
+  background-color: #ffffff;
 }
 
 /* Keyboard visibility handling */
@@ -78,7 +77,7 @@ html, body {
   width: 100%;
   overflow: hidden;
   overscroll-behavior: none;
-  background-color: hsl(120, 24%, 28%);
+  background-color: #ffffff;
 }
 
 #root {
@@ -214,8 +213,4 @@ html, body, #root {
 html, body {
   height: 100%;
   overflow-x: hidden;
-}
-
-body {
-  padding-top: env(safe-area-inset-top, 0px);
 }
