@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Clock } from "lucide-react";
+import { Plus, Trash2, Clock, ArrowLeft } from "lucide-react";
+import { useLocation } from "wouter";
 
 const DAYS = [
   { label: "Sunday", value: 0 },
@@ -66,6 +67,7 @@ function buildInitialSchedule(slots: Array<{ dayOfWeek: number; startTime: strin
 export default function Availability() {
   const { isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   const [schedule, setSchedule] = useState<WeekSchedule>(() => {
     const s: WeekSchedule = {};
@@ -175,13 +177,25 @@ export default function Availability() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto px-4 mobile-safe-bottom" style={{ paddingTop: 'calc(env(safe-area-inset-top, 44px) + 2rem)' }}>
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Clock className="h-6 w-6" />
-            Set Your Availability
-          </h1>
-          <p className="text-gray-600 mt-1">
+      {/* Fixed header */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="flex items-center h-16">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/professional-dashboard")}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-xl font-bold text-gray-900 ml-2 flex items-center gap-2">
+              <Clock className="h-5 w-5" /> Set Your Availability
+            </h1>
+          </div>
+        </div>
+      </div>
+      {/* Spacer */}
+      <div style={{ height: 'calc(64px + env(safe-area-inset-top))' }} />
+
+      <div className="max-w-2xl mx-auto px-4 mobile-safe-bottom py-4">
+        <div className="mb-4">
+          <p className="text-gray-600 text-sm">
             Choose which days and hours clients can book you.
           </p>
         </div>
