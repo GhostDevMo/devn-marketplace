@@ -69,27 +69,23 @@ export default function PayoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Fixed header that clears the iOS status bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <div className="min-h-screen bg-gray-50 pt-20">
+      {/* Sub-header below ClientHeader */}
+      <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation("/professional-dashboard")}
-                data-testid="button-back"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <h1 className="text-xl font-bold text-gray-900">Earnings & Payouts</h1>
-            </div>
+          <div className="flex items-center h-12">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation("/professional-dashboard")}
+              data-testid="button-back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-lg font-bold text-gray-900 ml-2">Earnings & Payouts</h1>
           </div>
         </div>
       </div>
-      {/* Spacer to push content below fixed header */}
-      <div style={{ height: 'calc(64px + env(safe-area-inset-top))' }} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
         {/* Earnings Summary */}
