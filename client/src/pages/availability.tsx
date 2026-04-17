@@ -174,8 +174,8 @@ export default function Availability() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-safe">
-      <div className="max-w-2xl mx-auto px-4 py-8 mobile-safe-bottom">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-2xl mx-auto px-4 mobile-safe-bottom" style={{ paddingTop: 'calc(env(safe-area-inset-top, 44px) + 2rem)' }}>
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Clock className="h-6 w-6" />

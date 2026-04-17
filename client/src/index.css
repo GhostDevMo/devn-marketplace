@@ -151,6 +151,15 @@ input, textarea {
     padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
   }
 
+  /* Safe area utilities for iOS notch/status bar */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 44px);
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 34px);
+  }
+
   .slide-in {
     animation: slideIn 0.3s ease-out;
   }
