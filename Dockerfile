@@ -3,7 +3,7 @@ FROM node:20-slim
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --omit=dev=false
+RUN npm ci
 
 COPY . .
 RUN npm run build
@@ -11,4 +11,4 @@ RUN npm run build
 EXPOSE 5050
 ENV NODE_ENV=production
 
-CMD ["npm", "run", "start"]
+CMD ["node", "dist/index.js"]
