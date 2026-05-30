@@ -13,11 +13,11 @@ import { queryClient } from "@/lib/queryClient";
 import ClientHeader from "@/components/client-header";
 import Layout from "@/components/Layout";
 
-// Load Stripe
-// if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
-//  throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
-// }
-const stripePromise = loadStripe("pk_test_51S5djjEKPjdG8injXAEaJ22nHOf9MsoMq5xYEYCYgHiutHtcxYQjTaN1iMxEAsDrm5dqgQ0hs1AahKeBRPsLGTb3004bJ2iqGI");
+// Load Stripe — key is set via VITE_STRIPE_PUBLIC_KEY environment variable
+if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
+  throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
+}
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const CheckoutForm = ({ booking }: { booking: any }) => {
   const stripe = useStripe();
