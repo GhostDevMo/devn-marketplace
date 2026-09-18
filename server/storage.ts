@@ -120,6 +120,8 @@ export interface IStorage {
 
   // Free chat operations
   getFreeChatSession(clientId: string, professionalId: number): Promise<FreeChat | undefined>;
+  getFreeChatSessionById(id: string): Promise<FreeChat | undefined>;
+  getFreeChatSessionsByProfessional(professionalId: number): Promise<Array<FreeChat & { client: User }>>;
   createFreeChatSession(clientId: string, professionalId: number): Promise<FreeChat>;
   startFreeChatTimer(id: string): Promise<FreeChat>;
   expireFreeChatSession(id: string): Promise<void>;
@@ -692,13 +694,43 @@ export class DatabaseStorage implements IStorage {
     return session;
   }
 
+  async getFreeChatSessionById(id: string): Promise<FreeChat | undefined> {
+    const [session] = await db.select().from(freeChats).where(eq(freeChats.id, id));
+    return session;
+  }
+
   async createFreeChatSession(clientId: string, professionalId: number): Promise<FreeChat> {
     const [session] = await db
       .insert(freeChats)
       .values({ clientId, professionalId })
+      .onConflictDoUpdate({
+        target: [freeChats.clientId, freeChats.professionalId],
+        set: {
+          startedAt: null,
+          expiresAt: null,
+          isExpired: false,
+          createdAt: new Date(),
+        },
+        where: sql`${freeChats.isExpired} = true`,
+      })
       .returning();
     return session;
   }
+
+  async getFreeChatSessionsByProfessional(professionalId: number): Promise<Array<FreeChat & { client: User }>> {
+    const sessions = await db
+      .select()
+      .from(freeChats)
+      .where(and(eq(freeChats.professionalId, professionalId), eq(freeChats.isExpired, false)));
+    const withClients = await Promise.all(
+      sessions.map(async (s) => {
+        const client = await this.getUser(s.clientId);
+        return { ...s, client: client! };
+      })
+    );
+    return withClients;
+  }
+
 
   async startFreeChatTimer(id: string): Promise<FreeChat> {
     const startedAt = new Date();

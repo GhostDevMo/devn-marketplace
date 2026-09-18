@@ -1,13 +1,17 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import logoImage from "@assets/DEVN. (1)_1760493848111.png";
 import { useLocation } from "wouter";
+import ServiceGuideModal from "@/components/service-guide-modal";
+import { HelpCircle } from "lucide-react";
 
 export default function ClientHeader() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const [guideOpen, setGuideOpen] = useState(false);
 
   const getInitials = () => {
     if (user?.firstName && user?.lastName) {
@@ -32,30 +36,43 @@ export default function ClientHeader() {
   };
 
 return (
-  <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-100 pt-[env(safe-area-inset-top)]">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center justify-between h-16">
-        <div className="flex items-center cursor-pointer" onClick={handleLogoClick}>
-          <img src={logoImage} alt="Devn Logo" className="h-10 w-10 rounded-lg" />
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-            <span className="text-white text-sm font-semibold">
-              {getInitials()}
-            </span>
+  <>
+    <ServiceGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
+    <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-100 pt-[env(safe-area-inset-top)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center cursor-pointer" onClick={handleLogoClick}>
+            <img src={logoImage} alt="Devn Logo" className="h-10 w-10 rounded-lg" />
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLogout}
-          >
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setGuideOpen(true)}
+              className="flex items-center gap-1.5 text-[#3A6B47] hover:text-[#2d5538] hover:bg-green-50"
+            >
+              <HelpCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Find Help</span>
+            </Button>
+
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-semibold">
+                {getInitials()}
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+            >
               Logout
             </Button>
           </div>
         </div>
       </div>
     </div>
+  </>
   );
 }

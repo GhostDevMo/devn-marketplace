@@ -33,9 +33,10 @@ export function setupChatWebSocket(server: Server) {
     const token = url.searchParams.get("token");
 
     // Route to free-chat handler
+    // Client connects via /ws/free-chat/:professionalId
+    // Professional connects via /ws/free-chat/session/:sessionId
     if (url.pathname.startsWith("/ws/free-chat/")) {
-      const professionalId = parseInt(url.pathname.split("/")[3]);
-      if (!token || isNaN(professionalId)) {
+      if (!token) {
         socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
         socket.destroy();
         return;
@@ -47,20 +48,51 @@ export function setupChatWebSocket(server: Server) {
           socket.destroy();
           return;
         }
-        let session = await storage.getFreeChatSession(decoded.id, professionalId);
-        if (!session) {
-          session = await storage.createFreeChatSession(decoded.id, professionalId);
+
+        let session: any;
+        const parts = url.pathname.split("/");
+
+        if (parts[3] === "session") {
+          // Professional joining by session ID
+          const sessionId = parts[4];
+          session = await storage.getFreeChatSessionById(sessionId);
+          if (!session) {
+            socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
+            socket.destroy();
+            return;
+          }
+          // Verify this professional owns the session
+          const professional = await storage.getProfessionalByUserId(decoded.id);
+          if (!professional || professional.id !== session.professionalId) {
+            socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+            socket.destroy();
+            return;
+          }
+        } else {
+          // Client joining by professional ID
+          const professionalId = parseInt(parts[3]);
+          if (isNaN(professionalId)) {
+            socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
+            socket.destroy();
+            return;
+          }
+          session = await storage.getFreeChatSession(decoded.id, professionalId);
+          if (!session) {
+            session = await storage.createFreeChatSession(decoded.id, professionalId);
+          }
         }
+
         if (session.isExpired || (session.expiresAt && new Date(session.expiresAt) < new Date())) {
           socket.write("HTTP/1.1 403 Free chat expired\r\n\r\n");
           socket.destroy();
           return;
         }
+
         wss.handleUpgrade(request, socket, head, (ws) => {
           const authWs = ws as AuthenticatedWebSocket;
           authWs.userId = decoded.id;
           authWs.freeChatSessionId = session!.id;
-          authWs.freeChatProfessionalId = professionalId;
+          authWs.freeChatProfessionalId = session!.professionalId;
           authWs.isFreeChat = true;
           wss.emit("connection", authWs, request);
         });
