@@ -19,11 +19,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
-  const [guideModalOpen, setGuideModalOpen] = useState(() => {
-    // Show once per browser session (not on every page navigation)
-    const shown = sessionStorage.getItem("serviceGuideShown");
-    return !shown;
-  });
+  const [guideModalOpen, setGuideModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
@@ -138,10 +134,7 @@ return (
   <Layout>
     <ServiceGuideModal
       open={guideModalOpen}
-      onClose={() => {
-        sessionStorage.setItem("serviceGuideShown", "1");
-        setGuideModalOpen(false);
-      }}
+      onClose={() => setGuideModalOpen(false)}
     />
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
         {/* Welcome Section */}
