@@ -7,7 +7,7 @@ import ServiceGuideModal from "@/components/service-guide-modal";
 
 export default function MobileNav() {
   const [location] = useLocation();
-  const { user } = useAuth();
+  const { user } = useAuth(); // used for role-based nav paths
   const [guideOpen, setGuideOpen] = useState(false);
 
   const isActive = (path: string) => {
@@ -57,17 +57,15 @@ export default function MobileNav() {
             );
           })}
 
-          {/* FAQ / Find Help — only for clients */}
-          {user?.role === 'client' && (
-            <Button
-              variant="ghost"
-              onClick={() => setGuideOpen(true)}
-              className="flex flex-col items-center p-2 h-auto min-h-[60px] text-[#3A6B47] hover:text-[#2d5538]"
-            >
-              <HelpCircle className="w-5 h-5 mb-1" />
-              <span className="text-xs">Find Help</span>
-            </Button>
-          )}
+          {/* FAQ / Find Help */}
+          <Button
+            variant="ghost"
+            onClick={() => setGuideOpen(true)}
+            className="flex flex-col items-center p-2 h-auto min-h-[60px] text-[#3A6B47] hover:text-[#2d5538]"
+          >
+            <HelpCircle className="w-5 h-5 mb-1" />
+            <span className="text-xs">Find Help</span>
+          </Button>
         </div>
       </div>
     </>
