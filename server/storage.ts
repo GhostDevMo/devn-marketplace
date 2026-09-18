@@ -706,7 +706,6 @@ export class DatabaseStorage implements IStorage {
       .onConflictDoUpdate({
         target: [freeChats.clientId, freeChats.professionalId],
         set: {
-          // Reset the session if it was expired — gives fresh 45-min chat
           startedAt: null,
           expiresAt: null,
           isExpired: false,
@@ -731,6 +730,7 @@ export class DatabaseStorage implements IStorage {
     );
     return withClients;
   }
+
 
   async startFreeChatTimer(id: string): Promise<FreeChat> {
     const startedAt = new Date();
