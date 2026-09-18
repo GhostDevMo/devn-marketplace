@@ -804,6 +804,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
   // ─── Free chat routes ────────────────────────────────────────────────────────
   // Start or resume a free chat session with a professional
   app.post('/api/free-chat/start/:professionalId', authenticateToken, async (req: AuthRequest, res) => {
