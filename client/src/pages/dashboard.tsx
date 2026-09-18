@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { TrendingUp, Calendar, Star, PieChart, LogOut } from "lucide-react";
 import { Link } from "wouter";
 import ServiceCard from "@/components/service-card";
+import ServiceGuideModal from "@/components/service-guide-modal";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import ClientHeader from "@/components/client-header";
 import Layout from "@/components/Layout";
@@ -18,6 +19,11 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [guideModalOpen, setGuideModalOpen] = useState(() => {
+    // Show once per browser session (not on every page navigation)
+    const shown = sessionStorage.getItem("serviceGuideShown");
+    return !shown;
+  });
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
@@ -130,6 +136,13 @@ export default function Dashboard() {
 
 return (
   <Layout>
+    <ServiceGuideModal
+      open={guideModalOpen}
+      onClose={() => {
+        sessionStorage.setItem("serviceGuideShown", "1");
+        setGuideModalOpen(false);
+      }}
+    />
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mobile-safe-bottom">
         {/* Welcome Section */}
         <div className="mb-8">
@@ -177,7 +190,7 @@ return (
         </div>
 
         {/* Services Section */}
-        <div className="mb-8">
+        <div id="services-section" className="mb-8">
           <h3 className="text-xl font-bold text-gray-900 mb-4">
             Choose a Service
           </h3>

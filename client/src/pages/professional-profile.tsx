@@ -10,6 +10,7 @@ import { ArrowLeft, Star, IdCard, Users, DollarSign } from "lucide-react";
 import { Link, useParams, useLocation } from "wouter";
 import TimeSlotPicker from "@/components/time-slot-picker";
 import BookingModal from "@/components/booking-modal";
+import FreeChatModal from "@/components/free-chat-modal";
 import ClientHeader from "@/components/client-header";
 import type { Professional, User, Service, Review } from "@shared/schema";
 import Layout from "@/components/Layout";
@@ -20,6 +21,7 @@ export default function ProfessionalProfile() {
   const { toast } = useToast();
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showFreeChatModal, setShowFreeChatModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<any>(null);
   const [ownProfessionalId, setOwnProfessionalId] = useState<number | null>(null);
@@ -441,13 +443,24 @@ return (
               selectedSlot={selectedSlot}
             />
 
-            <div className="mt-6 text-center">
+            <div className="mt-6 flex flex-col gap-3 items-center">
+              {user?.role === "client" && (
+                <Button
+                  onClick={() => setShowFreeChatModal(true)}
+                  variant="outline"
+                  size="lg"
+                  className="w-full border-[#3A6B47] text-[#3A6B47] hover:bg-[#3A6B47] hover:text-white"
+                >
+                  💬 Start Free 45-min Chat
+                </Button>
+              )}
               <Button
                 onClick={handleBookSession}
                 disabled={!selectedSlot}
                 size="lg"
+                className="w-full"
               >
-                {selectedSlot ? 'Book This Time Slot' : 'Select a Time to Continue'}
+                {selectedSlot ? 'Book This Time Slot — $25' : 'Select a Time to Book ($25)'}
               </Button>
             </div>
           </CardContent>
@@ -461,6 +474,16 @@ return (
           selectedSlot={selectedSlot}
           service={primaryService?.service}
           onClose={() => setShowBookingModal(false)}
+        />
+      )}
+
+      {/* Free Chat Modal */}
+      {professionalId && (
+        <FreeChatModal
+          open={showFreeChatModal}
+          onClose={() => setShowFreeChatModal(false)}
+          professionalId={professionalId}
+          professionalName={`${professional.user?.firstName ?? ""} ${professional.user?.lastName ?? ""}`.trim()}
         />
       )}
     </div>

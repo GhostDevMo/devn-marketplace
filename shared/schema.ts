@@ -156,6 +156,16 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const freeChats = pgTable("free_chats", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  clientId: varchar("client_id").references(() => users.id).notNull(),
+  professionalId: integer("professional_id").references(() => professionals.id).notNull(),
+  startedAt: timestamp("started_at"),
+  expiresAt: timestamp("expires_at"),
+  isExpired: boolean("is_expired").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const payoutRequests = pgTable("payout_requests", {
   id: serial("id").primaryKey(),
   professionalId: integer("professional_id").references(() => professionals.id).notNull(),
@@ -269,6 +279,11 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   }),
 }));
 
+export const freeChatsRelations = relations(freeChats, ({ one }) => ({
+  client: one(users, { fields: [freeChats.clientId], references: [users.id] }),
+  professional: one(professionals, { fields: [freeChats.professionalId], references: [professionals.id] }),
+}));
+
 export const payoutRequestsRelations = relations(payoutRequests, ({ one }) => ({
   professional: one(professionals, {
     fields: [payoutRequests.professionalId],
@@ -284,6 +299,7 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({ id: true,
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true });
 export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({ id: true, createdAt: true });
 export const insertPayoutRequestSchema = createInsertSchema(payoutRequests).omit({ id: true, createdAt: true, requestedAt: true });
+export const insertFreeChatSchema = createInsertSchema(freeChats).omit({ id: true, createdAt: true });
 
 // Authentication schemas
 export const loginSchema = z.object({
@@ -338,3 +354,5 @@ export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type PayoutRequest = typeof payoutRequests.$inferSelect;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPayoutRequest = z.infer<typeof insertPayoutRequestSchema>;
+export type FreeChat = typeof freeChats.$inferSelect;
+export type InsertFreeChat = z.infer<typeof insertFreeChatSchema>;
