@@ -33,8 +33,8 @@ export default function BookingModal({
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Use service's basePrice - server will calculate the actual amount
-  const displayPrice = service?.basePrice || "99";
+  const isBeta = import.meta.env.VITE_BETA_MODE === "true";
+  const displayPrice = isBeta ? "25" : (service?.basePrice || "99");
 
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData: any) => {
@@ -48,12 +48,20 @@ export default function BookingModal({
       console.log("Booking success callback:", booking);
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/professionals"] });
-      toast({
-        title: "Booking Created",
-        description: "Redirecting to payment...",
-      });
       onClose();
-      setLocation(`/checkout/${booking.id}`);
+      if (isBeta) {
+        toast({
+          title: "Session Booked!",
+          description: "Your session is confirmed. You'll receive more details shortly.",
+        });
+        setLocation(`/booking-confirmation/${booking.id}`);
+      } else {
+        toast({
+          title: "Booking Created",
+          description: "Redirecting to payment...",
+        });
+        setLocation(`/checkout/${booking.id}`);
+      }
     },
     onError: (error) => {
       console.error("Error creating booking:", error);
@@ -231,7 +239,10 @@ useEffect(() => {
               </div>
               <div className="flex justify-between pt-2 border-t border-gray-200">
                 <span className="text-gray-600">Total Cost:</span>
-                <span className="font-bold text-gray-900">${displayPrice}</span>
+                <div className="text-right">
+                  <span className="font-bold text-gray-900">${displayPrice}</span>
+                  {isBeta && <p className="text-xs text-emerald-600 font-medium">No charge during beta</p>}
+                </div>
               </div>
             </div>
           </div>
@@ -251,6 +262,14 @@ useEffect(() => {
           </div>
 
           {/* Payment Method */}
+          {isBeta ? (
+            <div className="mb-6 bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+              <p className="text-sm font-semibold text-emerald-800">🎉 Beta — No Payment Required</p>
+              <p className="text-xs text-emerald-700 mt-1">
+                Sessions are free during the beta period. Your booking will be confirmed instantly.
+              </p>
+            </div>
+          ) : (
           <div className="mb-6">
             <label className="block text-gray-700 text-sm font-medium mb-3">
               Payment Method
@@ -267,6 +286,7 @@ useEffect(() => {
               </div>
             </div>
           </div>
+          )}
 
           {/* Terms */}
           <div className="mb-6">
@@ -304,7 +324,7 @@ useEffect(() => {
               onClick={handleBooking}
               disabled={!agreedToTerms || isSubmitting}
             >
-              {isSubmitting ? 'Creating...' : 'Continue to Payment'}
+              {isSubmitting ? 'Booking...' : isBeta ? 'Confirm Session' : 'Continue to Payment'}
             </Button>
           </div>
         </CardContent>

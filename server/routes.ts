@@ -417,13 +417,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const platformFee = amount * 0.3;
       const professionalAmount = amount * 0.7;
 
+      const isBeta = process.env.BETA_MODE === "true";
       const bookingData = {
         ...req.body,
-        amount: amount.toFixed(2),
+        amount: isBeta ? "25.00" : amount.toFixed(2),
         clientId: userId,
         scheduledAt: scheduledAt,
-        platformFee: platformFee.toFixed(2),
-        professionalAmount: professionalAmount.toFixed(2),
+        platformFee: isBeta ? "0.00" : platformFee.toFixed(2),
+        professionalAmount: isBeta ? "25.00" : professionalAmount.toFixed(2),
+        // In beta, skip payment and auto-confirm immediately
+        ...(isBeta && { status: "confirmed" }),
       };
 
       const booking = await storage.createBooking(bookingData);
@@ -750,10 +753,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ received: true });
   });
 
+  // ─── Free chat routes ────────────────────────────────────────────────────────
+  // Start or resume a free chat session with a professional
+  app.post('/api/free-chat/start/:professionalId', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const clientId = req.user!.id;
+      const professionalId = parseInt(req.params.professionalId);
+      if (isNaN(professionalId)) return res.status(400).json({ message: "Invalid professional ID" });
+
+      let session = await storage.getFreeChatSession(clientId, professionalId);
+      if (!session) {
+        session = await storage.createFreeChatSession(clientId, professionalId);
+      }
+
+      const timeRemaining = session.expiresAt
+        ? Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000))
+        : 2700; // 45 min in seconds
+
+      res.json({
+        sessionId: session.id,
+        isExpired: session.isExpired || (session.expiresAt ? new Date(session.expiresAt) < new Date() : false),
+        started: !!session.startedAt,
+        timeRemaining,
+        expiresAt: session.expiresAt,
+      });
+    } catch (error) {
+      console.error("Error starting free chat:", error);
+      res.status(500).json({ message: "Failed to start free chat session" });
+    }
+  });
+
+  // Get free chat status for a professional
+  app.get('/api/free-chat/status/:professionalId', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const clientId = req.user!.id;
+      const professionalId = parseInt(req.params.professionalId);
+      if (isNaN(professionalId)) return res.status(400).json({ message: "Invalid professional ID" });
+
+      const session = await storage.getFreeChatSession(clientId, professionalId);
+      if (!session) {
+        return res.json({ hasSession: false, isExpired: false, timeRemaining: 600 });
+      }
+
+      const now = new Date();
+      const isExpired = session.isExpired || (session.expiresAt ? new Date(session.expiresAt) < now : false);
+
+      // Auto-expire in DB if time ran out
+      if (!session.isExpired && session.expiresAt && new Date(session.expiresAt) < now) {
+        await storage.expireFreeChatSession(session.id);
+      }
+
+      const timeRemaining = session.expiresAt
+        ? Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - now.getTime()) / 1000))
+        : 2700;
+
+      res.json({
+        hasSession: true,
+        sessionId: session.id,
+        isExpired,
+        started: !!session.startedAt,
+        timeRemaining,
+        expiresAt: session.expiresAt,
+      });
+    } catch (error) {
+      console.error("Error fetching free chat status:", error);
+      res.status(500).json({ message: "Failed to fetch free chat status" });
+    }
+  });
+
   const httpServer = createServer(app);
-  
+
   // Set up WebSocket server for chat
   setupChatWebSocket(httpServer);
-  
+
   return httpServer;
 }

@@ -4,9 +4,15 @@ import { storage } from "./storage";
 import { verifyToken } from "./auth";
 import type { ChatMessage, InsertChatMessage } from "@shared/schema";
 
+const FREE_CHAT_DURATION_MS = 45 * 60 * 1000; // 45 minutes
+const FREE_CHAT_WARNING_MS = 40 * 60 * 1000; // warn at 40 min (5 min before end)
+
 interface AuthenticatedWebSocket extends WebSocket {
   userId?: string;
   bookingId?: string;
+  isFreeChat?: boolean;
+  freeChatSessionId?: string;
+  freeChatProfessionalId?: number;
 }
 
 interface WSConnection {
@@ -24,6 +30,48 @@ export function setupChatWebSocket(server: Server) {
   server.on("upgrade", async (request, socket, head) => {
     const url = new URL(request.url!, `http://${request.headers.host}`);
     
+    const token = url.searchParams.get("token");
+
+    // Route to free-chat handler
+    if (url.pathname.startsWith("/ws/free-chat/")) {
+      const professionalId = parseInt(url.pathname.split("/")[3]);
+      if (!token || isNaN(professionalId)) {
+        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+        socket.destroy();
+        return;
+      }
+      try {
+        const decoded = verifyToken(token);
+        if (!decoded?.id) {
+          socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+          socket.destroy();
+          return;
+        }
+        let session = await storage.getFreeChatSession(decoded.id, professionalId);
+        if (!session) {
+          session = await storage.createFreeChatSession(decoded.id, professionalId);
+        }
+        if (session.isExpired || (session.expiresAt && new Date(session.expiresAt) < new Date())) {
+          socket.write("HTTP/1.1 403 Free chat expired\r\n\r\n");
+          socket.destroy();
+          return;
+        }
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          const authWs = ws as AuthenticatedWebSocket;
+          authWs.userId = decoded.id;
+          authWs.freeChatSessionId = session!.id;
+          authWs.freeChatProfessionalId = professionalId;
+          authWs.isFreeChat = true;
+          wss.emit("connection", authWs, request);
+        });
+      } catch (error) {
+        console.error("Free-chat WebSocket upgrade error:", error);
+        socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
+        socket.destroy();
+      }
+      return;
+    }
+
     // Only handle /ws/chat/:bookingId paths
     if (!url.pathname.startsWith("/ws/chat/")) {
       socket.destroy();
@@ -31,7 +79,6 @@ export function setupChatWebSocket(server: Server) {
     }
 
     const bookingId = url.pathname.split("/")[3];
-    const token = url.searchParams.get("token");
 
     if (!token || !bookingId) {
       socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
@@ -86,12 +133,103 @@ export function setupChatWebSocket(server: Server) {
 
   // Handle WebSocket connections
   wss.on("connection", (ws: AuthenticatedWebSocket) => {
-    const { userId, bookingId } = ws;
-    
-    if (!userId || !bookingId) {
-      ws.close();
+    const { userId } = ws;
+    if (!userId) { ws.close(); return; }
+
+    // ── Free-chat room ──────────────────────────────────────────────────────
+    if (ws.isFreeChat && ws.freeChatSessionId) {
+      const roomKey = `free:${ws.freeChatSessionId}`;
+      if (!connections.has(roomKey)) connections.set(roomKey, []);
+      connections.get(roomKey)!.push({ ws, userId });
+
+      // Send current timer state immediately
+      storage.getFreeChatSession(userId, ws.freeChatProfessionalId!).then((session) => {
+        if (!session || !ws.readyState) return;
+        const timeRemaining = session.expiresAt
+          ? Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000))
+          : 600;
+        ws.send(JSON.stringify({ type: "timer", timeRemaining, started: !!session.startedAt }));
+        ws.send(JSON.stringify({ type: "history", messages: [] }));
+      });
+
+      ws.on("message", async (data) => {
+        try {
+          const payload = JSON.parse(data.toString());
+          if (payload.type !== "message") return;
+
+          const session = await storage.getFreeChatSession(userId, ws.freeChatProfessionalId!);
+          if (!session) return;
+
+          // Start the timer on first message
+          let activeSession = session;
+          if (!session.startedAt) {
+            activeSession = await storage.startFreeChatTimer(session.id);
+            // Schedule 5-min warning
+            setTimeout(() => {
+              const roomConns = connections.get(roomKey) || [];
+              roomConns.forEach((conn) => {
+                if (conn.ws.readyState === WebSocket.OPEN) {
+                  conn.ws.send(JSON.stringify({ type: "time_warning", timeRemaining: 300 }));
+                }
+              });
+            }, FREE_CHAT_WARNING_MS);
+            // Schedule expiry broadcast
+            setTimeout(async () => {
+              await storage.expireFreeChatSession(activeSession.id);
+              const roomConns = connections.get(roomKey) || [];
+              roomConns.forEach((conn) => {
+                if (conn.ws.readyState === WebSocket.OPEN) {
+                  conn.ws.send(JSON.stringify({ type: "time_expired" }));
+                }
+              });
+            }, FREE_CHAT_DURATION_MS);
+          }
+
+          // Check if expired
+          if (activeSession.isExpired || (activeSession.expiresAt && new Date(activeSession.expiresAt) < new Date())) {
+            ws.send(JSON.stringify({ type: "time_expired" }));
+            return;
+          }
+
+          const sender = await storage.getUser(userId);
+          const message = {
+            id: Date.now().toString(),
+            content: payload.content,
+            senderId: userId,
+            createdAt: new Date().toISOString(),
+            sender,
+          };
+
+          const timeRemaining = activeSession.expiresAt
+            ? Math.max(0, Math.floor((new Date(activeSession.expiresAt).getTime() - Date.now()) / 1000))
+            : 600;
+
+          const roomConns = connections.get(roomKey) || [];
+          roomConns.forEach((conn) => {
+            if (conn.ws.readyState === WebSocket.OPEN) {
+              conn.ws.send(JSON.stringify({ type: "message", message }));
+              conn.ws.send(JSON.stringify({ type: "timer", timeRemaining, started: true }));
+            }
+          });
+        } catch (err) {
+          console.error("Free-chat message error:", err);
+        }
+      });
+
+      ws.on("close", () => {
+        const roomConns = connections.get(roomKey) || [];
+        const idx = roomConns.findIndex((c) => c.userId === userId);
+        if (idx !== -1) roomConns.splice(idx, 1);
+        if (roomConns.length === 0) connections.delete(roomKey);
+      });
+
+      ws.on("error", (err) => console.error("Free-chat WS error:", err));
       return;
     }
+
+    // ── Booking chat room (existing logic) ──────────────────────────────────
+    const { bookingId } = ws;
+    if (!bookingId) { ws.close(); return; }
 
     console.log(`User ${userId} connected to booking ${bookingId} chat`);
 
@@ -137,14 +275,14 @@ export function setupChatWebSocket(server: Server) {
           };
 
           const savedMessage = await storage.createChatMessage(messageData);
-          
+
           // Get sender info
           const sender = await storage.getUser(userId!);
 
           // Broadcast to all connections in this booking
           const bookingConnections = connections.get(bookingId!) || [];
           console.log(`Broadcasting message to ${bookingConnections.length} connections for booking ${bookingId}`);
-          
+
           const messageWithSender = {
             type: "message",
             message: {
@@ -174,7 +312,7 @@ export function setupChatWebSocket(server: Server) {
     // Handle disconnection
     ws.on("close", () => {
       console.log(`User ${userId} disconnected from booking ${bookingId} chat`);
-      
+
       // Remove connection from the map
       const bookingConnections = connections.get(bookingId!) || [];
       const index = bookingConnections.findIndex(conn => conn.userId === userId);

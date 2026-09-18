@@ -10,6 +10,7 @@ import {
   chatMessages,
   payoutRequests,
   passwordResetTokens,
+  freeChats,
   type User,
   type UpsertUser,
   type Service,
@@ -23,6 +24,7 @@ import {
   type InsertChatMessage,
   type PayoutRequest,
   type PasswordResetToken,
+  type FreeChat,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, gte, desc, asc, sql, inArray } from "drizzle-orm";
@@ -115,6 +117,12 @@ export interface IStorage {
   getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
   deletePasswordResetToken(token: string): Promise<void>;
   deleteExpiredPasswordResetTokens(): Promise<void>;
+
+  // Free chat operations
+  getFreeChatSession(clientId: string, professionalId: number): Promise<FreeChat | undefined>;
+  createFreeChatSession(clientId: string, professionalId: number): Promise<FreeChat>;
+  startFreeChatTimer(id: string): Promise<FreeChat>;
+  expireFreeChatSession(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -674,6 +682,37 @@ export class DatabaseStorage implements IStorage {
 
   async deleteExpiredPasswordResetTokens(): Promise<void> {
     await db.delete(passwordResetTokens).where(sql`${passwordResetTokens.expiresAt} < NOW()`);
+  }
+
+  async getFreeChatSession(clientId: string, professionalId: number): Promise<FreeChat | undefined> {
+    const [session] = await db
+      .select()
+      .from(freeChats)
+      .where(and(eq(freeChats.clientId, clientId), eq(freeChats.professionalId, professionalId)));
+    return session;
+  }
+
+  async createFreeChatSession(clientId: string, professionalId: number): Promise<FreeChat> {
+    const [session] = await db
+      .insert(freeChats)
+      .values({ clientId, professionalId })
+      .returning();
+    return session;
+  }
+
+  async startFreeChatTimer(id: string): Promise<FreeChat> {
+    const startedAt = new Date();
+    const expiresAt = new Date(startedAt.getTime() + 10 * 60 * 1000); // 10 minutes
+    const [session] = await db
+      .update(freeChats)
+      .set({ startedAt, expiresAt })
+      .where(eq(freeChats.id, id))
+      .returning();
+    return session;
+  }
+
+  async expireFreeChatSession(id: string): Promise<void> {
+    await db.update(freeChats).set({ isExpired: true }).where(eq(freeChats.id, id));
   }
 }
 
