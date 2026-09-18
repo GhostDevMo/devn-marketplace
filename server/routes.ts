@@ -768,6 +768,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
+  // ─── Help chat routes ────────────────────────────────────────────────────────
+  const HELP_AGENT_EMAIL = process.env.HELP_AGENT_EMAIL || "detolakinbi@gmail.com";
+
+  app.get('/api/help-chat/messages', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const msgs = await storage.getHelpMessages(req.user!.id);
+      res.json(msgs);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch help messages" });
+    }
+  });
+
+  // Admin: list all help conversations
+  app.get('/api/admin/help-conversations', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = await storage.getUserById(req.user!.id);
+      if (!user || user.email !== HELP_AGENT_EMAIL) return res.status(403).json({ message: "Forbidden" });
+      const conversations = await storage.getHelpConversationUsers();
+      res.json(conversations);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch conversations" });
+    }
+  });
+
+  // Admin: get messages for a specific user
+  app.get('/api/admin/help-conversations/:userId', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = await storage.getUserById(req.user!.id);
+      if (!user || user.email !== HELP_AGENT_EMAIL) return res.status(403).json({ message: "Forbidden" });
+      const msgs = await storage.getHelpMessages(req.params.userId);
+      res.json(msgs);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
   // ─── Free chat routes ────────────────────────────────────────────────────────
   // Start or resume a free chat session with a professional
   app.post('/api/free-chat/start/:professionalId', authenticateToken, async (req: AuthRequest, res) => {

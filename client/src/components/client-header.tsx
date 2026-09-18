@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import logoImage from "@assets/DEVN. (1)_1760493848111.png";
 import { useLocation } from "wouter";
 import ServiceGuideModal from "@/components/service-guide-modal";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Inbox } from "lucide-react";
 
 export default function ClientHeader() {
   const { user } = useAuth();
@@ -46,6 +46,17 @@ return (
           </div>
 
           <div className="flex items-center space-x-3">
+            {user?.email === "detolakinbi@gmail.com" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/admin/help-inbox")}
+                className="flex items-center gap-1.5 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+              >
+                <Inbox className="w-4 h-4" />
+                <span className="hidden sm:inline">Support Inbox</span>
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"

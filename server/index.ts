@@ -56,6 +56,18 @@ app.use((req, res, next) => {
       ON free_chats(client_id, professional_id);
   `).catch((err) => console.warn("free_chats migration note:", err.message));
 
+  // Ensure help_messages table exists
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS help_messages (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id VARCHAR NOT NULL REFERENCES users(id),
+      sender_id VARCHAR NOT NULL REFERENCES users(id),
+      content TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS help_messages_user_id_idx ON help_messages(user_id);
+  `).catch((err) => console.warn("help_messages migration note:", err.message));
+
   // Beta: set all service prices to $25 and all professional service prices to $25
   if (process.env.BETA_MODE === "true") {
     await pool.query(`UPDATE services SET base_price = '25.00'`)

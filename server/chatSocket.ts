@@ -4,8 +4,9 @@ import { storage } from "./storage";
 import { verifyToken } from "./auth";
 import type { ChatMessage, InsertChatMessage } from "@shared/schema";
 
-const FREE_CHAT_DURATION_MS = 45 * 60 * 1000; // 45 minutes
-const FREE_CHAT_WARNING_MS = 40 * 60 * 1000; // warn at 40 min (5 min before end)
+const FREE_CHAT_DURATION_MS = 45 * 60 * 1000;
+const FREE_CHAT_WARNING_MS = 40 * 60 * 1000;
+const HELP_AGENT_EMAIL = process.env.HELP_AGENT_EMAIL || "detolakinbi@gmail.com";
 
 interface AuthenticatedWebSocket extends WebSocket {
   userId?: string;
@@ -13,6 +14,8 @@ interface AuthenticatedWebSocket extends WebSocket {
   isFreeChat?: boolean;
   freeChatSessionId?: string;
   freeChatProfessionalId?: number;
+  isHelpChat?: boolean;
+  helpRoomUserId?: string; // the help-seeker's userId (room owner)
 }
 
 interface WSConnection {
@@ -31,6 +34,43 @@ export function setupChatWebSocket(server: Server) {
     const url = new URL(request.url!, `http://${request.headers.host}`);
     
     const token = url.searchParams.get("token");
+
+    // ── Help chat upgrade ────────────────────────────────────────────────────
+    if (url.pathname.startsWith("/ws/help-chat")) {
+      if (!token) { socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n"); socket.destroy(); return; }
+      try {
+        const decoded = verifyToken(token);
+        if (!decoded?.id) { socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n"); socket.destroy(); return; }
+
+        const parts = url.pathname.split("/"); // ["", "ws", "help-chat", "admin", userId?]
+        let helpRoomUserId: string;
+
+        if (parts[3] === "admin") {
+          // Admin connecting to a specific user's room
+          const user = await storage.getUserById(decoded.id);
+          if (!user || user.email !== HELP_AGENT_EMAIL) {
+            socket.write("HTTP/1.1 403 Forbidden\r\n\r\n"); socket.destroy(); return;
+          }
+          helpRoomUserId = parts[4]; // the user whose room the admin is joining
+          if (!helpRoomUserId) { socket.write("HTTP/1.1 400 Bad Request\r\n\r\n"); socket.destroy(); return; }
+        } else {
+          // Regular user connecting to their own help room
+          helpRoomUserId = decoded.id;
+        }
+
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          const authWs = ws as AuthenticatedWebSocket;
+          authWs.userId = decoded.id;
+          authWs.isHelpChat = true;
+          authWs.helpRoomUserId = helpRoomUserId;
+          wss.emit("connection", authWs, request);
+        });
+      } catch (err) {
+        console.error("Help-chat upgrade error:", err);
+        socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n"); socket.destroy();
+      }
+      return;
+    }
 
     // Route to free-chat handler
     // Client connects via /ws/free-chat/:professionalId
@@ -167,6 +207,47 @@ export function setupChatWebSocket(server: Server) {
   wss.on("connection", (ws: AuthenticatedWebSocket) => {
     const { userId } = ws;
     if (!userId) { ws.close(); return; }
+
+    // ── Help-chat room ─────────────────────────────────────────────────────
+    if (ws.isHelpChat && ws.helpRoomUserId) {
+      const roomKey = `help:${ws.helpRoomUserId}`;
+      if (!connections.has(roomKey)) connections.set(roomKey, []);
+      connections.get(roomKey)!.push({ ws, userId });
+
+      // Send history on connect
+      storage.getHelpMessages(ws.helpRoomUserId).then((msgs) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: "history", messages: msgs }));
+        }
+      }).catch(() => {});
+
+      ws.on("message", async (data) => {
+        try {
+          const payload = JSON.parse(data.toString());
+          if (payload.type !== "message") return;
+          const msg = await storage.createHelpMessage(ws.helpRoomUserId!, userId, payload.content);
+          const sender = await storage.getUser(userId);
+          const broadcast = { type: "message", message: { ...msg, sender } };
+          (connections.get(roomKey) || []).forEach((conn) => {
+            if (conn.ws.readyState === WebSocket.OPEN) {
+              conn.ws.send(JSON.stringify(broadcast));
+            }
+          });
+        } catch (err) {
+          console.error("Help-chat message error:", err);
+        }
+      });
+
+      ws.on("close", () => {
+        const roomConns = connections.get(roomKey) || [];
+        const idx = roomConns.findIndex((c) => c.userId === userId);
+        if (idx !== -1) roomConns.splice(idx, 1);
+        if (roomConns.length === 0) connections.delete(roomKey);
+      });
+
+      ws.on("error", (err) => console.error("Help-chat WS error:", err));
+      return;
+    }
 
     // ── Free-chat room ──────────────────────────────────────────────────────
     if (ws.isFreeChat && ws.freeChatSessionId) {

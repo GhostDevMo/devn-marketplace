@@ -11,6 +11,7 @@ import {
   payoutRequests,
   passwordResetTokens,
   freeChats,
+  helpMessages,
   type User,
   type UpsertUser,
   type Service,
@@ -25,6 +26,7 @@ import {
   type PayoutRequest,
   type PasswordResetToken,
   type FreeChat,
+  type HelpMessage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, gte, desc, asc, sql, inArray } from "drizzle-orm";
@@ -125,6 +127,11 @@ export interface IStorage {
   createFreeChatSession(clientId: string, professionalId: number): Promise<FreeChat>;
   startFreeChatTimer(id: string): Promise<FreeChat>;
   expireFreeChatSession(id: string): Promise<void>;
+
+  // Help chat operations
+  getHelpMessages(userId: string): Promise<Array<HelpMessage & { sender: User }>>;
+  createHelpMessage(userId: string, senderId: string, content: string): Promise<HelpMessage>;
+  getHelpConversationUsers(): Promise<Array<{ user: User; lastMessage: HelpMessage }>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -745,6 +752,46 @@ export class DatabaseStorage implements IStorage {
 
   async expireFreeChatSession(id: string): Promise<void> {
     await db.update(freeChats).set({ isExpired: true }).where(eq(freeChats.id, id));
+  }
+
+  // Help chat operations
+  async getHelpMessages(userId: string): Promise<Array<HelpMessage & { sender: User }>> {
+    const msgs = await db
+      .select()
+      .from(helpMessages)
+      .where(eq(helpMessages.userId, userId))
+      .orderBy(asc(helpMessages.createdAt));
+    const withSenders = await Promise.all(
+      msgs.map(async (m) => {
+        const sender = await this.getUser(m.senderId);
+        return { ...m, sender: sender! };
+      })
+    );
+    return withSenders;
+  }
+
+  async createHelpMessage(userId: string, senderId: string, content: string): Promise<HelpMessage> {
+    const [msg] = await db
+      .insert(helpMessages)
+      .values({ userId, senderId, content })
+      .returning();
+    return msg;
+  }
+
+  async getHelpConversationUsers(): Promise<Array<{ user: User; lastMessage: HelpMessage }>> {
+    // Get distinct user IDs that have help messages, with their latest message
+    const rows = await db
+      .select()
+      .from(helpMessages)
+      .orderBy(desc(helpMessages.createdAt));
+    const seen = new Map<string, { user: User; lastMessage: HelpMessage }>();
+    for (const row of rows) {
+      if (!seen.has(row.userId)) {
+        const user = await this.getUser(row.userId);
+        if (user) seen.set(row.userId, { user, lastMessage: row });
+      }
+    }
+    return Array.from(seen.values());
   }
 }
 
