@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Calendar, Clock, DollarSign, Users, CheckCircle, XCircle, CalendarClock } from "lucide-react";
 import Layout from "@/components/Layout";
+import ProfessionalFreeChat from "@/components/professional-free-chat";
 
 export default function ProfessionalDashboard() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -165,6 +166,9 @@ return (
             </Button>
           </Link>
         </div>
+
+        {/* Free chat inbox */}
+        <ProfessionalFreeChat />
 
         {/* Availability shortcut */}
         <div className="mb-6">

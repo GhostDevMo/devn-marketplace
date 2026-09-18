@@ -753,6 +753,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ received: true });
   });
 
+  // ─── Professional free chat inbox ───────────────────────────────────────────
+  app.get('/api/professional/free-chats', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const professional = await storage.getProfessionalByUserId(userId);
+      if (!professional) return res.status(404).json({ message: "Professional profile not found" });
+      const sessions = await storage.getFreeChatSessionsByProfessional(professional.id);
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error fetching professional free chats:", error);
+      res.status(500).json({ message: "Failed to fetch free chats" });
+    }
+  });
+
   // ─── Free chat routes ────────────────────────────────────────────────────────
   // Start or resume a free chat session with a professional
   app.post('/api/free-chat/start/:professionalId', authenticateToken, async (req: AuthRequest, res) => {
