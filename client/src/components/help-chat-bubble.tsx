@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { MessageCircle, X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,17 +24,13 @@ export default function HelpChatBubble() {
   const wsRef = useRef<WebSocket | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Don't show for the admin account itself
-  if (!isAuthenticated || !user || user.email === HELP_AGENT_EMAIL) return null;
-
-  const connectWS = () => {
+  const connectWS = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
     const token = localStorage.getItem("token");
     if (!token) return;
     const proto = window.location.protocol === "https:" ? "wss" : "ws";
     const ws = new WebSocket(`${proto}://${window.location.host}/ws/help-chat?token=${token}`);
     wsRef.current = ws;
-
     ws.onopen = () => setConnected(true);
     ws.onclose = () => { setConnected(false); wsRef.current = null; };
     ws.onmessage = (e) => {
@@ -45,7 +41,7 @@ export default function HelpChatBubble() {
         setMessages((prev) => [...prev, payload.message]);
       }
     };
-  };
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -54,11 +50,14 @@ export default function HelpChatBubble() {
       wsRef.current?.close();
       wsRef.current = null;
     }
-  }, [open]);
+  }, [open, connectWS]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Must be after all hooks — don't show for admin or unauthenticated users
+  if (!isAuthenticated || !user || user.email === HELP_AGENT_EMAIL) return null;
 
   const sendMessage = () => {
     const text = input.trim();
@@ -68,7 +67,7 @@ export default function HelpChatBubble() {
   };
 
   const senderName = (msg: Message) => {
-    if (msg.senderId === user?.id) return "You";
+    if (msg.senderId === user.id) return "You";
     if (msg.sender?.firstName) return msg.sender.firstName;
     return "Support";
   };
@@ -86,8 +85,10 @@ export default function HelpChatBubble() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-40 right-4 z-50 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl flex flex-col border border-gray-200 overflow-hidden"
-          style={{ maxHeight: "70vh" }}>
+        <div
+          className="fixed bottom-40 right-4 z-50 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl flex flex-col border border-gray-200 overflow-hidden"
+          style={{ maxHeight: "70vh" }}
+        >
           {/* Header */}
           <div className="bg-green-600 text-white px-4 py-3 flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold">
@@ -107,14 +108,16 @@ export default function HelpChatBubble() {
               </p>
             )}
             {messages.map((msg) => {
-              const isOwn = msg.senderId === user?.id;
+              const isOwn = msg.senderId === user.id;
               return (
                 <div key={msg.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm ${
-                    isOwn
-                      ? "bg-green-600 text-white rounded-br-sm"
-                      : "bg-white text-gray-800 border border-gray-200 rounded-bl-sm"
-                  }`}>
+                  <div
+                    className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm ${
+                      isOwn
+                        ? "bg-green-600 text-white rounded-br-sm"
+                        : "bg-white text-gray-800 border border-gray-200 rounded-bl-sm"
+                    }`}
+                  >
                     {!isOwn && (
                       <p className="text-xs font-semibold text-green-600 mb-0.5">{senderName(msg)}</p>
                     )}
