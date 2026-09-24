@@ -21,11 +21,10 @@ const DAYS = [
   { label: "Saturday", value: 6 },
 ];
 
-// Generate HH:MM options from 06:00 to 22:00 in 30-min increments
+// Generate HH:MM options from 09:00 to 17:00 in 1-hour increments
 const TIME_OPTIONS: string[] = [];
-for (let h = 6; h <= 22; h++) {
+for (let h = 9; h <= 17; h++) {
   TIME_OPTIONS.push(`${String(h).padStart(2, "0")}:00`);
-  if (h < 22) TIME_OPTIONS.push(`${String(h).padStart(2, "0")}:30`);
 }
 
 function formatDisplay(time: string) {
