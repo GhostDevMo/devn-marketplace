@@ -6,7 +6,7 @@ import logoImage from "@assets/DEVN. (1)_1760493848111.png";
 import { useLocation } from "wouter";
 import ServiceGuideModal from "@/components/service-guide-modal";
 import NotificationBell from "@/components/notification-bell";
-import { HelpCircle, Inbox } from "lucide-react";
+import { HelpCircle, Inbox, MessageSquare } from "lucide-react";
 
 export default function ClientHeader() {
   const { user } = useAuth();
@@ -58,6 +58,16 @@ return (
                 <span className="hidden sm:inline">Support Inbox</span>
               </Button>
             )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/inbox")}
+              className="flex items-center gap-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span className="hidden sm:inline">Inbox</span>
+            </Button>
+
             <Button
               variant="ghost"
               size="sm"

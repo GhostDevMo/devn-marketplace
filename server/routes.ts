@@ -814,6 +814,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
+  // ─── Inbox route ─────────────────────────────────────────────────────────────
+  app.get('/api/inbox', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUserById(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      if (user.role === 'professional') {
+        const professional = await storage.getProfessionalByUserId(userId);
+        if (!professional) return res.json({ bookingChats: [], freeChats: [] });
+
+        const bookings = await storage.getBookingsByProfessional(professional.id);
+        const bookingChats = bookings
+          .filter((b) => b.status === 'confirmed')
+          .map((b) => ({
+            id: b.id,
+            type: 'booking',
+            otherPartyName: `${b.client.firstName || ''} ${b.client.lastName || ''}`.trim() || b.client.email,
+            otherPartyInitials: ((b.client.firstName?.[0] || '') + (b.client.lastName?.[0] || '')).toUpperCase() || b.client.email[0].toUpperCase(),
+            scheduledAt: b.scheduledAt,
+            status: b.status,
+            label: b.service?.name || 'Session',
+          }));
+
+        const freeChats = await storage.getFreeChatSessionsByProfessional(professional.id);
+        const freeChatItems = freeChats.map((fc) => ({
+          id: fc.id,
+          type: 'free',
+          otherPartyName: `${fc.client.firstName || ''} ${fc.client.lastName || ''}`.trim() || fc.client.email,
+          otherPartyInitials: ((fc.client.firstName?.[0] || '') + (fc.client.lastName?.[0] || '')).toUpperCase() || fc.client.email[0].toUpperCase(),
+          scheduledAt: fc.createdAt,
+          status: fc.isExpired ? 'ended' : 'active',
+          label: 'Free 45-min Chat',
+          expiresAt: fc.expiresAt,
+          professionalId: professional.id,
+        }));
+
+        return res.json({ bookingChats, freeChats: freeChatItems });
+      }
+
+      // Client
+      const bookings = await storage.getBookingsByClient(userId);
+      const bookingChats = bookings
+        .filter((b) => b.status === 'confirmed')
+        .map((b) => ({
+          id: b.id,
+          type: 'booking',
+          otherPartyName: `${b.professional.user.firstName || ''} ${b.professional.user.lastName || ''}`.trim() || b.professional.user.email,
+          otherPartyInitials: ((b.professional.user.firstName?.[0] || '') + (b.professional.user.lastName?.[0] || '')).toUpperCase() || b.professional.user.email[0].toUpperCase(),
+          scheduledAt: b.scheduledAt,
+          status: b.status,
+          label: b.service?.name || 'Session',
+        }));
+
+      // Find active free chat sessions for this client
+      const { rows: fcRows } = await (await import('./db')).pool.query<any>(
+        `SELECT fc.*, p.id as prof_id, pu.first_name, pu.last_name, pu.email as prof_email
+         FROM free_chats fc
+         JOIN professionals p ON p.id = fc.professional_id
+         JOIN users pu ON pu.id = p.user_id
+         WHERE fc.client_id = $1 AND fc.is_expired = false`,
+        [userId]
+      );
+      const freeChats = fcRows.map((r: any) => ({
+        id: r.id,
+        type: 'free',
+        otherPartyName: `${r.first_name || ''} ${r.last_name || ''}`.trim() || r.prof_email,
+        otherPartyInitials: ((r.first_name?.[0] || '') + (r.last_name?.[0] || '')).toUpperCase() || r.prof_email[0].toUpperCase(),
+        scheduledAt: r.created_at,
+        status: r.is_expired ? 'ended' : 'active',
+        label: 'Free 45-min Chat',
+        expiresAt: r.expires_at,
+        professionalId: r.prof_id,
+      }));
+
+      res.json({ bookingChats, freeChats });
+    } catch (err) {
+      console.error("Inbox error:", err);
+      res.status(500).json({ message: "Failed to load inbox" });
+    }
+  });
+
   // ─── Notification routes ─────────────────────────────────────────────────────
   app.get('/api/notifications', authenticateToken, async (req: AuthRequest, res) => {
     try {
