@@ -103,6 +103,12 @@ export default function ServiceGuideModal({ open, onClose }: Props) {
   const [, navigate] = useLocation();
 
   const handleSelect = (cat: Category) => {
+    if (cat.id === "unsure") {
+      onClose();
+      // Dispatch event so HelpChatBubble opens itself
+      window.dispatchEvent(new CustomEvent("open-help-chat"));
+      return;
+    }
     setSelected(cat);
   };
 

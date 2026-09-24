@@ -166,6 +166,17 @@ export const freeChats = pgTable("free_chats", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  type: varchar("type").notNull(), // booking_request | booking_confirmed | booking_cancelled | reminder_24h | reminder_1h
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  bookingId: uuid("booking_id"),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const helpMessages = pgTable("help_messages", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: varchar("user_id").references(() => users.id).notNull(),
@@ -365,3 +376,4 @@ export type InsertPayoutRequest = z.infer<typeof insertPayoutRequestSchema>;
 export type FreeChat = typeof freeChats.$inferSelect;
 export type InsertFreeChat = z.infer<typeof insertFreeChatSchema>;
 export type HelpMessage = typeof helpMessages.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;

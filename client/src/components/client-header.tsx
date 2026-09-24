@@ -5,7 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 import logoImage from "@assets/DEVN. (1)_1760493848111.png";
 import { useLocation } from "wouter";
 import ServiceGuideModal from "@/components/service-guide-modal";
-import { HelpCircle, Inbox } from "lucide-react";
+import NotificationBell from "@/components/notification-bell";
+import { HelpCircle, Inbox, MessageSquare } from "lucide-react";
 
 export default function ClientHeader() {
   const { user } = useAuth();
@@ -60,12 +61,24 @@ return (
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => navigate("/inbox")}
+              className="flex items-center gap-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span className="hidden sm:inline">Inbox</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setGuideOpen(true)}
               className="flex items-center gap-1.5 text-[#3A6B47] hover:text-[#2d5538] hover:bg-green-50"
             >
               <HelpCircle className="w-4 h-4" />
               <span className="hidden sm:inline">Find Help</span>
             </Button>
+
+            <NotificationBell />
 
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-semibold">

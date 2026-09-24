@@ -182,8 +182,8 @@ export function setupChatWebSocket(server: Server) {
         return;
       }
 
-      // Check if booking is confirmed or completed
-      if (booking.status !== "confirmed" && booking.status !== "completed") {
+      // Only confirmed bookings allow chat; completed = ended, no new sessions
+      if (booking.status !== "confirmed") {
         socket.write("HTTP/1.1 403 Forbidden - Booking not confirmed\r\n\r\n");
         socket.destroy();
         return;

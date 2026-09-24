@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Calculator, TrendingUp, FileText, PiggyBank, CreditCard, Shield } from "lucide-react";
+import { ArrowRight, Calculator, TrendingUp, FileText, CreditCard, Shield } from "lucide-react";
 import { Link } from "wouter";
 import type { Service } from "@shared/schema";
 
@@ -15,8 +15,6 @@ const getServiceIcon = (slug: string) => {
       return TrendingUp;
     case 'tax':
       return FileText;
-    case 'retirement':
-      return PiggyBank;
     case 'debt':
       return CreditCard;
     case 'insurance':

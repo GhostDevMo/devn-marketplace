@@ -5,6 +5,7 @@ import { registerRoutes } from "./routes";
 import authRoutes from './authRoutes';
 import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
+import { storage } from "./storage";
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));
@@ -56,6 +57,22 @@ app.use((req, res, next) => {
       ON free_chats(client_id, professional_id);
   `).catch((err) => console.warn("free_chats migration note:", err.message));
 
+  // Ensure notifications table exists
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS notifications (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id VARCHAR NOT NULL REFERENCES users(id),
+      type VARCHAR NOT NULL,
+      title VARCHAR NOT NULL,
+      message TEXT NOT NULL,
+      booking_id UUID,
+      is_read BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS notifications_user_id_idx ON notifications(user_id);
+    CREATE INDEX IF NOT EXISTS notifications_booking_id_type_idx ON notifications(booking_id, type);
+  `).catch((err) => console.warn("notifications migration note:", err.message));
+
   // Ensure help_messages table exists
   await pool.query(`
     CREATE TABLE IF NOT EXISTS help_messages (
@@ -68,6 +85,12 @@ app.use((req, res, next) => {
     CREATE INDEX IF NOT EXISTS help_messages_user_id_idx ON help_messages(user_id);
   `).catch((err) => console.warn("help_messages migration note:", err.message));
 
+  // Remove Retirement Planning service (and its professional_services links first)
+  await pool.query(`
+    DELETE FROM professional_services WHERE service_id IN (SELECT id FROM services WHERE slug = 'retirement');
+    DELETE FROM services WHERE slug = 'retirement';
+  `).catch((err) => console.warn("Remove retirement service note:", err.message));
+
   // Beta: set all service prices to $25 and all professional service prices to $25
   if (process.env.BETA_MODE === "true") {
     await pool.query(`UPDATE services SET base_price = '25.00'`)
@@ -76,6 +99,75 @@ app.use((req, res, next) => {
       .catch((err) => console.warn("Beta price update (professional_services) note:", err.message));
     console.log("BETA_MODE: all service prices set to $25");
   }
+
+  // ─── Booking reminder scheduler (runs every 10 minutes) ─────────────────────
+  const sendReminders = async () => {
+    try {
+      const now = new Date();
+      const in25h = new Date(now.getTime() + 25 * 60 * 60 * 1000);
+      const in23h = new Date(now.getTime() + 23 * 60 * 60 * 1000);
+      const in65m = new Date(now.getTime() + 65 * 60 * 1000);
+      const in55m = new Date(now.getTime() + 55 * 60 * 1000);
+
+      const { rows: upcoming } = await pool.query<{
+        id: string; client_id: string; professional_user_id: string;
+        scheduled_at: Date; client_first: string; prof_first: string;
+      }>(`
+        SELECT b.id, b.client_id, p.user_id AS professional_user_id,
+               b.scheduled_at,
+               cu.first_name AS client_first, pu.first_name AS prof_first
+        FROM bookings b
+        JOIN professionals p ON p.id = b.professional_id
+        JOIN users cu ON cu.id = b.client_id
+        JOIN users pu ON pu.id = p.user_id
+        WHERE b.status = 'confirmed'
+          AND b.scheduled_at BETWEEN $1 AND $2
+      `, [in55m, in25h]);
+
+      for (const row of upcoming) {
+        const date = new Date(row.scheduled_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+        const diffMs = new Date(row.scheduled_at).getTime() - now.getTime();
+        const is24h = diffMs >= in23h.getTime() - now.getTime() && diffMs <= in25h.getTime() - now.getTime();
+        const is1h  = diffMs >= in55m.getTime() - now.getTime() && diffMs <= in65m.getTime() - now.getTime();
+
+        if (is24h) {
+          for (const { userId, name, other } of [
+            { userId: row.client_id, name: row.client_first || "there", other: row.prof_first || "your professional" },
+            { userId: row.professional_user_id, name: row.prof_first || "there", other: row.client_first || "your client" },
+          ]) {
+            if (!(await storage.notificationExists(row.id, userId, "reminder_24h"))) {
+              await storage.createNotification({
+                userId, type: "reminder_24h",
+                title: "Session Tomorrow",
+                message: `Reminder: your session with ${other} is tomorrow at ${date}.`,
+                bookingId: row.id,
+              });
+            }
+          }
+        }
+
+        if (is1h) {
+          for (const { userId, other } of [
+            { userId: row.client_id, other: row.prof_first || "your professional" },
+            { userId: row.professional_user_id, other: row.client_first || "your client" },
+          ]) {
+            if (!(await storage.notificationExists(row.id, userId, "reminder_1h"))) {
+              await storage.createNotification({
+                userId, type: "reminder_1h",
+                title: "Session in 1 Hour",
+                message: `Your session with ${other} starts in about 1 hour (${date}).`,
+                bookingId: row.id,
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Reminder scheduler error:", err);
+    }
+  };
+  sendReminders(); // run once at startup
+  setInterval(sendReminders, 10 * 60 * 1000); // then every 10 minutes
 
   const server = await registerRoutes(app);
 

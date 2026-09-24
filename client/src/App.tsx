@@ -29,6 +29,7 @@ import MobileNav from "@/components/mobile-nav";
 import ClientHeader from "@/components/client-header";
 import HelpChatBubble from "@/components/help-chat-bubble";
 import AdminHelpInbox from "@/pages/admin-help-inbox";
+import Inbox from "@/pages/inbox";
 import { StatusBar } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 
@@ -86,6 +87,7 @@ function Router() {
           <Route path="/booking/:bookingId" component={BookingDetails} />
           <Route path="/checkout/:bookingId" component={Checkout} />
           <Route path="/booking-confirmation/:bookingId" component={BookingConfirmation} />
+          <Route path="/inbox" component={Inbox} />
           <Route path="/admin/help-inbox" component={AdminHelpInbox} />
         </>
       )}

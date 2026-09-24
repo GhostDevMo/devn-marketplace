@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Home, Calendar, User, HelpCircle } from "lucide-react";
+import { Home, Calendar, User, HelpCircle, Inbox } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import ServiceGuideModal from "@/components/service-guide-modal";
@@ -21,6 +21,11 @@ export default function MobileNav() {
       path: user?.role === 'professional' ? '/professional-dashboard' : '/',
       label: 'Home',
       icon: Home,
+    },
+    {
+      path: '/inbox',
+      label: 'Inbox',
+      icon: Inbox,
     },
     {
       path: '/bookings',
