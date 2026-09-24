@@ -430,6 +430,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const booking = await storage.createBooking(bookingData);
+
+      // Notify the professional of new booking request
+      const professional = await storage.getProfessionalById(booking.professionalId);
+      const client = await storage.getUser(booking.clientId);
+      if (professional?.user?.id) {
+        const clientName = client ? `${client.firstName || ""} ${client.lastName || ""}`.trim() || client.email : "A client";
+        const scheduledDate = new Date(booking.scheduledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+        await storage.createNotification({
+          userId: professional.user.id,
+          type: isBeta ? "booking_confirmed" : "booking_request",
+          title: isBeta ? "New Booking Confirmed" : "New Booking Request",
+          message: isBeta
+            ? `${clientName} booked a session on ${scheduledDate}.`
+            : `${clientName} requested a session on ${scheduledDate}. Please confirm or decline.`,
+          bookingId: booking.id,
+        });
+      }
+      // In beta, also notify the client their booking is confirmed
+      if (isBeta && client) {
+        const scheduledDate = new Date(booking.scheduledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+        const profName = professional?.user ? `${professional.user.firstName || ""} ${professional.user.lastName || ""}`.trim() : "your professional";
+        await storage.createNotification({
+          userId: client.id,
+          type: "booking_confirmed",
+          title: "Booking Confirmed",
+          message: `Your session with ${profName} on ${scheduledDate} is confirmed.`,
+          bookingId: booking.id,
+        });
+      }
+
       res.json(booking);
     } catch (error: any) {
       console.error("Error creating booking:", error);
@@ -502,6 +532,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const updatedBooking = await storage.updateBookingStatus(req.params.id, status);
+
+      // Notify client of status change
+      if (status === "confirmed" || status === "cancelled") {
+        const scheduledDate = new Date(booking.scheduledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+        const profName = `${booking.professional.user.firstName || ""} ${booking.professional.user.lastName || ""}`.trim() || "your professional";
+        await storage.createNotification({
+          userId: booking.clientId,
+          type: status === "confirmed" ? "booking_confirmed" : "booking_cancelled",
+          title: status === "confirmed" ? "Booking Confirmed" : "Booking Declined",
+          message: status === "confirmed"
+            ? `Your session with ${profName} on ${scheduledDate} has been confirmed.`
+            : `Your session with ${profName} on ${scheduledDate} was declined. Please book another time.`,
+          bookingId: booking.id,
+        });
+      }
+
       res.json(updatedBooking);
     } catch (error) {
       console.error("Error updating booking:", error);
@@ -767,6 +813,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
+  // ─── Notification routes ─────────────────────────────────────────────────────
+  app.get('/api/notifications', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const notifs = await storage.getNotifications(req.user!.id);
+      res.json(notifs);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.get('/api/notifications/unread-count', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const count = await storage.getUnreadNotificationCount(req.user!.id);
+      res.json({ count });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch unread count" });
+    }
+  });
+
+  app.patch('/api/notifications/:id/read', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      await storage.markNotificationRead(req.params.id, req.user!.id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to mark notification read" });
+    }
+  });
+
+  app.patch('/api/notifications/read-all', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      await storage.markAllNotificationsRead(req.user!.id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to mark all read" });
+    }
+  });
 
   // ─── Help chat routes ────────────────────────────────────────────────────────
   const HELP_AGENT_EMAIL = process.env.HELP_AGENT_EMAIL || "detolakinbi@gmail.com";

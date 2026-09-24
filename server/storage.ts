@@ -12,6 +12,7 @@ import {
   passwordResetTokens,
   freeChats,
   helpMessages,
+  notifications,
   type User,
   type UpsertUser,
   type Service,
@@ -27,6 +28,7 @@ import {
   type PasswordResetToken,
   type FreeChat,
   type HelpMessage,
+  type Notification,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, gte, desc, asc, sql, inArray } from "drizzle-orm";
@@ -132,6 +134,14 @@ export interface IStorage {
   getHelpMessages(userId: string): Promise<Array<HelpMessage & { sender: User }>>;
   createHelpMessage(userId: string, senderId: string, content: string): Promise<HelpMessage>;
   getHelpConversationUsers(): Promise<Array<{ user: User; lastMessage: HelpMessage }>>;
+
+  // Notification operations
+  getNotifications(userId: string): Promise<Notification[]>;
+  getUnreadNotificationCount(userId: string): Promise<number>;
+  createNotification(data: { userId: string; type: string; title: string; message: string; bookingId?: string }): Promise<Notification>;
+  markNotificationRead(id: string, userId: string): Promise<void>;
+  markAllNotificationsRead(userId: string): Promise<void>;
+  notificationExists(bookingId: string, userId: string, type: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -752,6 +762,54 @@ export class DatabaseStorage implements IStorage {
 
   async expireFreeChatSession(id: string): Promise<void> {
     await db.update(freeChats).set({ isExpired: true }).where(eq(freeChats.id, id));
+  }
+
+  // Notification operations
+  async getNotifications(userId: string): Promise<Notification[]> {
+    return db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt))
+      .limit(50);
+  }
+
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    const rows = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    return rows[0]?.count ?? 0;
+  }
+
+  async createNotification(data: { userId: string; type: string; title: string; message: string; bookingId?: string }): Promise<Notification> {
+    const [notif] = await db.insert(notifications).values(data).returning();
+    return notif;
+  }
+
+  async markNotificationRead(id: string, userId: string): Promise<void> {
+    await db.update(notifications)
+      .set({ isRead: true })
+      .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+  }
+
+  async markAllNotificationsRead(userId: string): Promise<void> {
+    await db.update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.userId, userId));
+  }
+
+  async notificationExists(bookingId: string, userId: string, type: string): Promise<boolean> {
+    const rows = await db
+      .select({ id: notifications.id })
+      .from(notifications)
+      .where(and(
+        eq(notifications.bookingId, bookingId),
+        eq(notifications.userId, userId),
+        eq(notifications.type, type),
+      ))
+      .limit(1);
+    return rows.length > 0;
   }
 
   // Help chat operations

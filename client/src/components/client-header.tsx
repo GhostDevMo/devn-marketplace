@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import logoImage from "@assets/DEVN. (1)_1760493848111.png";
 import { useLocation } from "wouter";
 import ServiceGuideModal from "@/components/service-guide-modal";
+import NotificationBell from "@/components/notification-bell";
 import { HelpCircle, Inbox } from "lucide-react";
 
 export default function ClientHeader() {
@@ -66,6 +67,8 @@ return (
               <HelpCircle className="w-4 h-4" />
               <span className="hidden sm:inline">Find Help</span>
             </Button>
+
+            <NotificationBell />
 
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-semibold">
