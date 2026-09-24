@@ -52,6 +52,13 @@ export default function HelpChatBubble() {
     }
   }, [open, connectWS]);
 
+  // Open when triggered from the "Not Sure" option in Find Help
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-help-chat", handler);
+    return () => window.removeEventListener("open-help-chat", handler);
+  }, []);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
