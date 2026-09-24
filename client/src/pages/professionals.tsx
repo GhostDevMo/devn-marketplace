@@ -82,7 +82,6 @@ export default function Professionals() {
       'budgeting': 'Budgeting & Planning',
       'investment': 'Investment Advisory',
       'tax': 'Tax Consulting',
-      'retirement': 'Retirement Planning',
       'debt': 'Debt Management',
       'insurance': 'Insurance Advisory'
     };

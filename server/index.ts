@@ -85,6 +85,12 @@ app.use((req, res, next) => {
     CREATE INDEX IF NOT EXISTS help_messages_user_id_idx ON help_messages(user_id);
   `).catch((err) => console.warn("help_messages migration note:", err.message));
 
+  // Remove Retirement Planning service (and its professional_services links first)
+  await pool.query(`
+    DELETE FROM professional_services WHERE service_id IN (SELECT id FROM services WHERE slug = 'retirement');
+    DELETE FROM services WHERE slug = 'retirement';
+  `).catch((err) => console.warn("Remove retirement service note:", err.message));
+
   // Beta: set all service prices to $25 and all professional service prices to $25
   if (process.env.BETA_MODE === "true") {
     await pool.query(`UPDATE services SET base_price = '25.00'`)
