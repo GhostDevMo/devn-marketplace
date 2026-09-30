@@ -820,17 +820,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!professional) return res.json({ bookingChats: [], freeChats: [] });
 
         const bookings = await storage.getBookingsByProfessional(professional.id);
+        const nowProf = new Date();
         const bookingChats = bookings
-          .filter((b) => b.status === 'confirmed')
-          .map((b) => ({
-            id: b.id,
-            type: 'booking',
-            otherPartyName: `${b.client.firstName || ''} ${b.client.lastName || ''}`.trim() || b.client.email,
-            otherPartyInitials: ((b.client.firstName?.[0] || '') + (b.client.lastName?.[0] || '')).toUpperCase() || b.client.email[0].toUpperCase(),
-            scheduledAt: b.scheduledAt,
-            status: b.status,
-            label: b.service?.name || 'Session',
-          }));
+          .filter((b) => b.status === 'confirmed' || b.status === 'completed')
+          .map((b) => {
+            const sessionEnded = b.status === 'completed' || (b.scheduledAt && new Date(b.scheduledAt) < nowProf);
+            return {
+              id: b.id,
+              type: 'booking',
+              otherPartyName: `${b.client.firstName || ''} ${b.client.lastName || ''}`.trim() || b.client.email,
+              otherPartyInitials: ((b.client.firstName?.[0] || '') + (b.client.lastName?.[0] || '')).toUpperCase() || b.client.email[0].toUpperCase(),
+              scheduledAt: b.scheduledAt,
+              status: sessionEnded ? 'ended' : 'confirmed',
+              label: b.service?.name || 'Session',
+            };
+          });
 
         const freeChats = await storage.getFreeChatSessionsByProfessional(professional.id);
         const freeChatItems = freeChats.map((fc) => ({
@@ -850,17 +854,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Client
       const bookings = await storage.getBookingsByClient(userId);
+      const now = new Date();
       const bookingChats = bookings
-        .filter((b) => b.status === 'confirmed')
-        .map((b) => ({
-          id: b.id,
-          type: 'booking',
-          otherPartyName: `${b.professional.user.firstName || ''} ${b.professional.user.lastName || ''}`.trim() || b.professional.user.email,
-          otherPartyInitials: ((b.professional.user.firstName?.[0] || '') + (b.professional.user.lastName?.[0] || '')).toUpperCase() || b.professional.user.email[0].toUpperCase(),
-          scheduledAt: b.scheduledAt,
-          status: b.status,
-          label: b.service?.name || 'Session',
-        }));
+        .filter((b) => b.status === 'confirmed' || b.status === 'completed')
+        .map((b) => {
+          const sessionEnded = b.status === 'completed' || (b.scheduledAt && new Date(b.scheduledAt) < now);
+          return {
+            id: b.id,
+            type: 'booking',
+            otherPartyName: `${b.professional.user.firstName || ''} ${b.professional.user.lastName || ''}`.trim() || b.professional.user.email,
+            otherPartyInitials: ((b.professional.user.firstName?.[0] || '') + (b.professional.user.lastName?.[0] || '')).toUpperCase() || b.professional.user.email[0].toUpperCase(),
+            scheduledAt: b.scheduledAt,
+            status: sessionEnded ? 'ended' : 'confirmed',
+            label: b.service?.name || 'Session',
+          };
+        });
 
       // Find active free chat sessions for this client
       const { rows: fcRows } = await (await import('./db')).pool.query<any>(
