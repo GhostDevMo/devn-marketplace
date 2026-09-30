@@ -79,11 +79,11 @@ export default function Professionals() {
 
   const getServiceTitle = (slug: string) => {
     const titles: Record<string, string> = {
-      'budgeting': 'Budgeting & Planning',
-      'investment': 'Investment Advisory',
-      'tax': 'Tax Consulting',
-      'debt': 'Debt Management',
-      'insurance': 'Insurance Advisory'
+      'tax': 'Tax Support',
+      'bookkeeping': 'Bookkeeping Support',
+      'budgeting': 'Budgeting & Cash Flow',
+      'debt': 'Debt Guidance',
+      'general': 'General Financial Guidance'
     };
     return titles[slug] || 'Financial';
   };

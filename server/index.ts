@@ -85,11 +85,25 @@ app.use((req, res, next) => {
     CREATE INDEX IF NOT EXISTS help_messages_user_id_idx ON help_messages(user_id);
   `).catch((err) => console.warn("help_messages migration note:", err.message));
 
-  // Remove Retirement Planning service (and its professional_services links first)
+  // Replace all services with the canonical 5 — idempotent upsert
   await pool.query(`
-    DELETE FROM professional_services WHERE service_id IN (SELECT id FROM services WHERE slug = 'retirement');
-    DELETE FROM services WHERE slug = 'retirement';
-  `).catch((err) => console.warn("Remove retirement service note:", err.message));
+    DELETE FROM professional_services WHERE service_id IN (
+      SELECT id FROM services WHERE slug NOT IN ('tax','bookkeeping','budgeting','debt','general')
+    );
+    DELETE FROM services WHERE slug NOT IN ('tax','bookkeeping','budgeting','debt','general');
+
+    INSERT INTO services (name, slug, description, base_price)
+    VALUES
+      ('Tax Support',               'tax',         'Get help understanding tax questions, notices, filing requirements, deductions, and recommended next steps.',               '25.00'),
+      ('Bookkeeping Support',       'bookkeeping', 'Get guidance organizing business income, expenses, records, and day-to-day bookkeeping needs.',                           '25.00'),
+      ('Budgeting & Cash Flow',     'budgeting',   'Understand where your money is going, improve your cash flow, and create a plan for upcoming expenses.',                  '25.00'),
+      ('Debt Guidance',             'debt',        'Get support with debt repayment strategies, credit cards, business loans, and other debt-related questions.',              '25.00'),
+      ('General Financial Guidance','general',     'Not sure which service fits your needs? Start here and get connected with a professional who can help you determine the right next step.', '25.00')
+    ON CONFLICT (slug) DO UPDATE SET
+      name        = EXCLUDED.name,
+      description = EXCLUDED.description,
+      base_price  = EXCLUDED.base_price;
+  `).catch((err) => console.warn("Services upsert note:", err.message));
 
   // Beta: set all service prices to $25 and all professional service prices to $25
   if (process.env.BETA_MODE === "true") {
