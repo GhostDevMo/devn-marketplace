@@ -198,9 +198,7 @@ export default function BookingChat({ bookingId, currentUserId }: BookingChatPro
       <Card>
         <CardContent className="p-6 text-center">
           <p className="text-gray-600">
-            {chatStatus?.reason === "Session has ended"
-              ? "This session has ended. The chat is now closed."
-              : "Chat will be available once the booking is confirmed."}
+            Chat will be available once the booking is confirmed.
           </p>
           {chatStatus?.scheduledStart && (
             <p className="text-sm text-gray-500 mt-2">
@@ -298,8 +296,15 @@ export default function BookingChat({ bookingId, currentUserId }: BookingChatPro
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input area */}
-        <div className="p-4 border-t border-gray-200">
+        {/* Session ended banner */}
+        {chatStatus?.readOnly && (
+          <div className="px-4 py-2 bg-gray-100 border-t border-gray-200 text-center text-sm text-gray-500">
+            This session has ended — chat is read-only.
+          </div>
+        )}
+
+        {/* Input area — hidden for completed sessions */}
+        {!chatStatus?.readOnly && <div className="p-4 border-t border-gray-200">
           {selectedFile && (
             <div className="mb-2 p-2 bg-gray-100 rounded flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -358,7 +363,7 @@ export default function BookingChat({ bookingId, currentUserId }: BookingChatPro
               <Send className="w-4 h-4" />
             </Button>
           </div>
-        </div>
+        </div>}
       </CardContent>
     </Card>
   );
