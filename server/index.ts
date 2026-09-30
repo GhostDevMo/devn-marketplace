@@ -85,6 +85,13 @@ app.use((req, res, next) => {
     CREATE INDEX IF NOT EXISTS help_messages_user_id_idx ON help_messages(user_id);
   `).catch((err) => console.warn("help_messages migration note:", err.message));
 
+  // ONE-TIME: clear all test bookings and associated data
+  await pool.query(`
+    DELETE FROM chat_messages WHERE booking_id IN (SELECT id FROM bookings);
+    DELETE FROM notifications WHERE booking_id IN (SELECT id FROM bookings);
+    DELETE FROM bookings;
+  `).catch((err) => console.warn("Test booking cleanup note:", err.message));
+
   // Replace all services with the canonical 5 — idempotent upsert
   await pool.query(`
     DELETE FROM professional_services WHERE service_id IN (
