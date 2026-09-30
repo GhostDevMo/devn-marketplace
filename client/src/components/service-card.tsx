@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Calculator, TrendingUp, FileText, CreditCard, Shield } from "lucide-react";
+import { ArrowRight, FileText, BookOpen, TrendingUp, CreditCard, Compass } from "lucide-react";
 import { Link } from "wouter";
 import type { Service } from "@shared/schema";
 
@@ -9,18 +9,18 @@ interface ServiceCardProps {
 
 const getServiceIcon = (slug: string) => {
   switch (slug) {
-    case 'budgeting':
-      return Calculator;
-    case 'investment':
-      return TrendingUp;
     case 'tax':
       return FileText;
+    case 'bookkeeping':
+      return BookOpen;
+    case 'budgeting':
+      return TrendingUp;
     case 'debt':
       return CreditCard;
-    case 'insurance':
-      return Shield;
+    case 'general':
+      return Compass;
     default:
-      return Calculator;
+      return Compass;
   }
 };
 
