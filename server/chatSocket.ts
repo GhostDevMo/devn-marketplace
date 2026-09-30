@@ -182,8 +182,8 @@ export function setupChatWebSocket(server: Server) {
         return;
       }
 
-      // Only confirmed bookings allow chat; completed = ended, no new sessions
-      if (booking.status !== "confirmed") {
+      // Confirmed = full chat; completed = read-only history; anything else = blocked
+      if (booking.status !== "confirmed" && booking.status !== "completed") {
         socket.write("HTTP/1.1 403 Forbidden - Booking not confirmed\r\n\r\n");
         socket.destroy();
         return;
@@ -194,6 +194,7 @@ export function setupChatWebSocket(server: Server) {
         const authWs = ws as AuthenticatedWebSocket;
         authWs.userId = decoded.id;
         authWs.bookingId = bookingId;
+        (authWs as any).readOnly = booking.status === "completed";
         wss.emit("connection", authWs, request);
       });
     } catch (error) {
@@ -376,6 +377,11 @@ export function setupChatWebSocket(server: Server) {
         const payload = JSON.parse(data.toString());
 
         if (payload.type === "message") {
+          // Block sends for read-only (completed) sessions
+          if ((ws as any).readOnly) {
+            ws.send(JSON.stringify({ type: "error", message: "This session has ended. You can read but not send messages." }));
+            return;
+          }
           // Create and persist the message
           const messageData: InsertChatMessage = {
             bookingId: bookingId!,

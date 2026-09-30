@@ -655,21 +655,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden" });
       }
 
-      // Only confirmed bookings can chat — completed sessions are locked
+      if (booking.status === "completed") {
+        return res.json({ canAccess: true, readOnly: true, reason: "Session has ended" });
+      }
       if (booking.status !== "confirmed") {
-        return res.json({
-          canAccess: false,
-          reason: booking.status === "completed"
-            ? "Session has ended"
-            : "Booking not confirmed",
-        });
+        return res.json({ canAccess: false, readOnly: false, reason: "Booking not confirmed" });
       }
 
-      res.json({
-        canAccess: true,
-        reason: null,
-        scheduledStart: booking.scheduledAt,
-      });
+      res.json({ canAccess: true, readOnly: false, reason: null, scheduledStart: booking.scheduledAt });
     } catch (error) {
       console.error("Error checking chat status:", error);
       res.status(500).json({ message: "Failed to check chat status" });
