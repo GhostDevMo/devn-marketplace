@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import logoImage from "@assets/DEVN. (1)_1760493848111.png";
 import { useLocation } from "wouter";
 import NotificationBell from "@/components/notification-bell";
-import { Inbox, MessageSquare } from "lucide-react";
+import { Inbox } from "lucide-react";
 
 export default function ClientHeader() {
   const { user } = useAuth();
@@ -55,16 +55,6 @@ return (
                 <span className="hidden sm:inline">Support Inbox</span>
               </Button>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/inbox")}
-              className="flex items-center gap-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span className="hidden sm:inline">Inbox</span>
-            </Button>
-
             <NotificationBell />
 
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
