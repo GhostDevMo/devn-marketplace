@@ -89,6 +89,7 @@ app.use((req, res, next) => {
   await pool.query(`
     DELETE FROM chat_messages WHERE booking_id IN (SELECT id FROM bookings);
     DELETE FROM notifications WHERE booking_id IN (SELECT id FROM bookings);
+    DELETE FROM reviews WHERE booking_id IN (SELECT id FROM bookings);
     DELETE FROM bookings;
   `).catch((err) => console.warn("Test booking cleanup note:", err.message));
 
