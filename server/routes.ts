@@ -655,15 +655,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden" });
       }
 
-      // Check if booking is confirmed or completed
-      if (booking.status !== "confirmed" && booking.status !== "completed") {
-        return res.json({ 
-          canAccess: false, 
-          reason: "Booking not confirmed" 
+      // Only confirmed bookings can chat — completed sessions are locked
+      if (booking.status !== "confirmed") {
+        return res.json({
+          canAccess: false,
+          reason: booking.status === "completed"
+            ? "Session has ended"
+            : "Booking not confirmed",
         });
       }
 
-      // Allow chat access for all confirmed/completed bookings
       res.json({
         canAccess: true,
         reason: null,

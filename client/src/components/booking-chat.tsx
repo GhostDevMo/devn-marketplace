@@ -198,9 +198,9 @@ export default function BookingChat({ bookingId, currentUserId }: BookingChatPro
       <Card>
         <CardContent className="p-6 text-center">
           <p className="text-gray-600">
-            {chatStatus?.reason === "Booking not confirmed"
-              ? "Chat will be available once the booking is confirmed"
-              : "Chat is available 30 minutes before and after your scheduled session"}
+            {chatStatus?.reason === "Session has ended"
+              ? "This session has ended. The chat is now closed."
+              : "Chat will be available once the booking is confirmed."}
           </p>
           {chatStatus?.scheduledStart && (
             <p className="text-sm text-gray-500 mt-2">
